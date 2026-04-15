@@ -1,204 +1,252 @@
+const SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+
 function doPost(e) {
-  // Setup output JSON
-  var output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
-  
+  const sheet = SpreadsheetApp.openById(SHEET_ID);
+  const response = { status: 'error', message: 'Unknown error' };
+
   try {
-    // Parse data yang dikirim dari Frontend (HTML)
-    var data = JSON.parse(e.postData.contents);
-    var action = data.action;
+    const payload = JSON.parse(e.postData.contents);
+    const action = payload.action;
+
+    // ==========================================
+    // 1. AUTH & PROFIL (Bawaan Lama)
+    // ==========================================
+    if (action === 'login') {
+      const wsUsers = sheet.getSheetByName("Users");
+      const data = wsUsers.getDataRange().getValues();
+      let found = false;
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][2].toString() === payload.wa && data[i][3].toString() === payload.password) {
+          found = true;
+          if (data[i][5] === 'Pending') {
+            response.status = 'success';
+            response.statusAkun = 'Pending';
+          } else {
+            response.status = 'success';
+            response.message = 'Login berhasil!';
+            response.user = { userId: data[i][0], role: data[i][1], wa: data[i][2], nama: data[i][4] };
+          }
+          break;
+        }
+      }
+      if (!found) response.message = 'Nomor WA atau Password salah.';
+    } 
     
-    // Buka Spreadsheet aktif
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    else if (action === 'register_user') {
+      const wsUsers = sheet.getSheetByName("Users");
+      const data = wsUsers.getDataRange().getValues();
+      let exists = false;
 
-    // ==========================================
-    // 1. REGISTER (DAFTAR AKUN BARU)
-    // ==========================================
-    if (action === 'register_user') {
-      var sheetUsers = ss.getSheetByName("Users");
-      if (!sheetUsers) return output.setContent(JSON.stringify({ "status": "error", "message": "Sheet 'Users' tidak ditemukan." }));
-      
-      var userList = sheetUsers.getDataRange().getValues();
-      
-      // Cek apakah nomor WA sudah terdaftar
-      for (var i = 1; i < userList.length; i++) {
-        if (userList[i][3] == data.wa) { 
-          return output.setContent(JSON.stringify({ "status": "error", "message": "Nomor WhatsApp sudah terdaftar." }));
-        }
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][2].toString() === payload.wa) { exists = true; break; }
       }
-      
-      // Buat ID unik berdasarkan waktu
-      var prefix = data.role === 'Merchant' ? 'M-' : 'D-';
-      var newUserId = prefix + new Date().getTime().toString().slice(-6);
-      
-      // Tentukan status akun (Driver butuh verifikasi, Merchant langsung aktif)
-      var statusAkun = data.role === 'Driver' ? 'Pending' : 'Aktif';
-      
-      // Simpan ke Sheet Users (ID, Role, Nama, WA, Password, Status)
-      sheetUsers.appendRow([newUserId, data.role, data.nama, data.wa, data.password, statusAkun]);
-      
-      return output.setContent(JSON.stringify({
-        "status": "success",
-        "message": "Pendaftaran berhasil!",
-        "statusAkun": statusAkun,
-        "user": {
-          "userId": newUserId,
-          "role": data.role,
-          "nama": data.nama,
-          "wa": data.wa
-        }
-      }));
+
+      if (exists) {
+        response.message = 'Nomor WA sudah terdaftar!';
+      } else {
+        const newId = 'USR-' + new Date().getTime();
+        const statusAkun = payload.role === 'Driver' ? 'Pending' : 'Active';
+        wsUsers.appendRow([newId, payload.role, payload.wa, payload.password, payload.nama, statusAkun]);
+        
+        response.status = 'success';
+        response.statusAkun = statusAkun;
+        response.message = 'Pendaftaran berhasil!';
+        response.user = { userId: newId, role: payload.role, wa: payload.wa, nama: payload.nama };
+      }
     }
 
-    // ==========================================
-    // 2. LOGIN (MASUK AKUN)
-    // ==========================================
-    else if (action === 'login') {
-      var sheetUsers = ss.getSheetByName("Users");
-      if (!sheetUsers) return output.setContent(JSON.stringify({ "status": "error", "message": "Sheet 'Users' tidak ditemukan." }));
-      
-      var userList = sheetUsers.getDataRange().getValues();
-      
-      for (var i = 1; i < userList.length; i++) {
-        // Cek WA dan Password
-        if (userList[i][3] == data.wa && userList[i][4] == data.password) {
-          
-          // Cek jika status akun masih Pending (khusus Driver)
-          if (userList[i][5] === 'Pending') {
-            return output.setContent(JSON.stringify({ "status": "error", "message": "Akun Anda masih menunggu verifikasi Admin." }));
-          }
-          
-          return output.setContent(JSON.stringify({
-            "status": "success",
-            "message": "Berhasil masuk!",
-            "user": {
-              "userId": userList[i][0],
-              "role": userList[i][1],
-              "nama": userList[i][2],
-              "wa": userList[i][3]
-            }
-          }));
-        }
-      }
-      return output.setContent(JSON.stringify({ "status": "error", "message": "Nomor WA atau Password salah." }));
-    }
-
-    // ==========================================
-    // 3. EDIT USER (UBAH PROFIL PRIBADI)
-    // ==========================================
     else if (action === 'edit_user') {
-      var sheetUsers = ss.getSheetByName("Users");
-      if (!sheetUsers) return output.setContent(JSON.stringify({ "status": "error", "message": "Sheet 'Users' tidak ditemukan." }));
-      
-      var userList = sheetUsers.getDataRange().getValues();
-      
-      // Validasi jika WA diubah, apakah sudah dipakai orang lain?
-      if (data.newWa !== data.oldWa) {
-        for (var j = 1; j < userList.length; j++) {
-          if (userList[j][3] == data.newWa && userList[j][0] != data.userId) {
-            return output.setContent(JSON.stringify({ "status": "error", "message": "Nomor WhatsApp baru sudah terdaftar di akun lain." }));
+      const wsUsers = sheet.getSheetByName("Users");
+      const data = wsUsers.getDataRange().getValues();
+      let updated = false;
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === payload.userId) {
+          if (payload.oldPassword && payload.newPassword) {
+             if (data[i][3].toString() !== payload.oldPassword) {
+                response.message = 'Kata sandi saat ini salah!';
+                return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
+             }
+             wsUsers.getRange(i + 1, 4).setValue(payload.newPassword);
           }
+          wsUsers.getRange(i + 1, 3).setValue(payload.newWa);
+          wsUsers.getRange(i + 1, 5).setValue(payload.nama);
+          
+          updated = true;
+          response.status = 'success';
+          response.message = 'Profil berhasil diperbarui!';
+          response.user = { userId: payload.userId, role: data[i][1], wa: payload.newWa, nama: payload.nama };
+          break;
         }
       }
-      
-      for (var i = 1; i < userList.length; i++) {
-        if (userList[i][0] == data.userId) {
-          // Cek password lama jika user ingin ubah password
-          if (data.newPassword && data.newPassword !== "") {
-            if (userList[i][4] != data.oldPassword) {
-              return output.setContent(JSON.stringify({ "status": "error", "message": "Kata sandi saat ini salah." }));
-            }
-            sheetUsers.getRange(i + 1, 5).setValue(data.newPassword);
-          }
-          
-          // Update Nama dan WA
-          sheetUsers.getRange(i + 1, 3).setValue(data.nama);
-          sheetUsers.getRange(i + 1, 4).setValue(data.newWa);
-          
-          return output.setContent(JSON.stringify({
-            "status": "success",
-            "message": "Profil berhasil diperbarui!",
-            "user": {
-              "userId": data.userId,
-              "role": userList[i][1],
-              "nama": data.nama,
-              "wa": data.newWa
-            }
-          }));
-        }
-      }
-      return output.setContent(JSON.stringify({ "status": "error", "message": "Pengguna tidak ditemukan." }));
+      if (!updated) response.message = 'Pengguna tidak ditemukan.';
     }
 
     // ==========================================
-    // 4. GET TOKO INFO (AMBIL DATA TOKO)
+    // 2. MANAJEMEN TOKO
     // ==========================================
     else if (action === 'get_toko_info') {
-      var sheetToko = ss.getSheetByName("Toko");
-      if (!sheetToko) return output.setContent(JSON.stringify({ "status": "success", "toko": null })); // Tidak error, anggap saja belum ada
-      
-      var tokoList = sheetToko.getDataRange().getValues();
-      for (var i = 1; i < tokoList.length; i++) {
-        if (tokoList[i][0] == data.userId) { 
-           return output.setContent(JSON.stringify({ 
-             "status": "success", 
-             "toko": { 
-               "namaToko": tokoList[i][1], 
-               "jamBuka": tokoList[i][2], 
-               "alamat": tokoList[i][3],
-               "kordinat": tokoList[i][4] || "" 
-             }
-           }));
-        }
-      }
-      // Jika loop selesai dan tidak ketemu
-      return output.setContent(JSON.stringify({ "status": "success", "toko": null }));
-    }
+      const wsToko = sheet.getSheetByName("Toko");
+      const data = wsToko.getDataRange().getValues();
+      let tokoData = null;
 
-    // ==========================================
-    // 5. EDIT TOKO INFO (UBAH/TAMBAH DATA TOKO)
-    // ==========================================
-    else if (action === 'edit_toko_info') {
-      var sheetToko = ss.getSheetByName("Toko");
-      if (!sheetToko) {
-        return output.setContent(JSON.stringify({ "status": "error", "message": "Sheet 'Toko' tidak ditemukan. Harap buat sheet bernama Toko." }));
-      }
-
-      var tokoData = sheetToko.getDataRange().getValues();
-      var isFound = false;
-
-      // Cari berdasarkan UserId
-      for (var i = 1; i < tokoData.length; i++) {
-        if (tokoData[i][0] == data.userId) { 
-          // Jika ketemu -> UPDATE
-          sheetToko.getRange(i + 1, 2).setValue(data.namaToko); 
-          sheetToko.getRange(i + 1, 3).setValue(data.jamBuka);  
-          sheetToko.getRange(i + 1, 4).setValue(data.alamat);   
-          sheetToko.getRange(i + 1, 5).setValue(data.kordinat); 
-          isFound = true;
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === payload.userId) {
+          tokoData = { 
+            namaToko: data[i][1], 
+            jamBuka: data[i][2], 
+            alamat: data[i][3], 
+            kordinat: data[i][4],
+            statusToko: data[i][5] || 'Tutup' // Default Tutup jika kosong
+          };
           break;
         }
       }
 
-      // Jika belum ada di database (Merchant baru) -> BUAT BARIS BARU
-      if (!isFound) {
-        sheetToko.appendRow([
-          data.userId, 
-          data.namaToko, 
-          data.jamBuka, 
-          data.alamat, 
-          data.kordinat
-        ]);
+      response.status = 'success';
+      response.toko = tokoData;
+    }
+
+    else if (action === 'edit_toko_info') {
+      const wsToko = sheet.getSheetByName("Toko");
+      const data = wsToko.getDataRange().getValues();
+      let foundRow = -1;
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === payload.userId) { foundRow = i + 1; break; }
       }
 
-      return output.setContent(JSON.stringify({ "status": "success", "message": "Informasi toko berhasil disimpan!" }));
+      if (foundRow > -1) {
+        wsToko.getRange(foundRow, 2).setValue(payload.namaToko);
+        wsToko.getRange(foundRow, 3).setValue(payload.jamBuka);
+        wsToko.getRange(foundRow, 4).setValue(payload.alamat);
+        wsToko.getRange(foundRow, 5).setValue(payload.kordinat);
+      } else {
+        // Jika belum ada, buat baru. Kolom F (statusToko) default 'Tutup'
+        wsToko.appendRow([payload.userId, payload.namaToko, payload.jamBuka, payload.alamat, payload.kordinat, 'Tutup']);
+      }
+      response.status = 'success';
+      response.message = 'Informasi toko berhasil disimpan!';
     }
     
-    // Default Fallback
-    return output.setContent(JSON.stringify({ "status": "error", "message": "Aksi tidak dikenali." }));
+    else if (action === 'set_store_status') {
+      const wsToko = sheet.getSheetByName("Toko");
+      const data = wsToko.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === payload.userId) { 
+          wsToko.getRange(i + 1, 6).setValue(payload.statusToko ? 'Buka' : 'Tutup');
+          response.status = 'success';
+          break; 
+        }
+      }
+    }
+
+    // ==========================================
+    // 3. MANAJEMEN DAFTAR MENU
+    // ==========================================
+    else if (action === 'get_menus') {
+      const wsMenu = sheet.getSheetByName("Menu");
+      const data = wsMenu.getDataRange().getValues();
+      let menus = [];
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][1] === payload.userId) {
+          menus.push({
+            id: data[i][0],
+            nama: data[i][2],
+            harga: data[i][3],
+            desc: data[i][4],
+            aktif: data[i][5] === true || data[i][5] === 'TRUE' || data[i][5] === true
+          });
+        }
+      }
+      
+      // Urutkan menu terbaru di atas
+      menus.reverse();
+      response.status = 'success';
+      response.menus = menus;
+    }
+
+    else if (action === 'save_menu') {
+      const wsMenu = sheet.getSheetByName("Menu");
+      
+      if (payload.menuId) {
+        // Edit Menu
+        const data = wsMenu.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          if (data[i][0] === payload.menuId && data[i][1] === payload.userId) {
+            wsMenu.getRange(i + 1, 3).setValue(payload.nama);
+            wsMenu.getRange(i + 1, 4).setValue(payload.harga);
+            wsMenu.getRange(i + 1, 5).setValue(payload.desc);
+            response.status = 'success';
+            response.message = 'Menu diperbarui';
+            break;
+          }
+        }
+      } else {
+        // Tambah Menu Baru
+        const newId = 'MNU-' + new Date().getTime();
+        wsMenu.appendRow([newId, payload.userId, payload.nama, payload.harga, payload.desc, true]);
+        response.status = 'success';
+        response.message = 'Menu baru ditambahkan';
+      }
+    }
+
+    else if (action === 'toggle_menu') {
+      const wsMenu = sheet.getSheetByName("Menu");
+      const data = wsMenu.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === payload.menuId && data[i][1] === payload.userId) {
+          wsMenu.getRange(i + 1, 6).setValue(payload.aktif);
+          response.status = 'success';
+          break;
+        }
+      }
+    }
+
+    // ==========================================
+    // 4. MANAJEMEN PESANAN & DASHBOARD
+    // ==========================================
+    else if (action === 'get_pesanan') {
+      const wsPesanan = sheet.getSheetByName("Pesanan");
+      const data = wsPesanan.getDataRange().getValues();
+      let orders = [];
+
+      // Loop dari bawah (terbaru) ke atas
+      for (let i = data.length - 1; i >= 1; i--) {
+        if (data[i][1] === payload.userId) {
+          orders.push({
+            id: data[i][0],
+            customer: data[i][2],
+            items: data[i][3],
+            total: data[i][4],
+            status: data[i][5],
+            time: data[i][6],
+            date: data[i][7], // Format string tgl, cth: '2023-10-01'
+            note: data[i][8] || ''
+          });
+        }
+      }
+      response.status = 'success';
+      response.orders = orders;
+    }
+
+    else if (action === 'update_pesanan_status') {
+      const wsPesanan = sheet.getSheetByName("Pesanan");
+      const data = wsPesanan.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === payload.orderId) {
+          wsPesanan.getRange(i + 1, 6).setValue(payload.newStatus);
+          response.status = 'success';
+          break;
+        }
+      }
+    }
 
   } catch (error) {
-    // Tangkap error sistem
-    return output.setContent(JSON.stringify({ "status": "error", "message": "Terjadi kesalahan server: " + error.message }));
+    response.message = error.toString();
   }
+
+  return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
 }
