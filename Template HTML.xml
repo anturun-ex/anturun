@@ -1,0 +1,2237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsVersion='3' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta content='width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no' name='viewport'/>
+  <title><data:view.title.escaped/></title>
+  <b:include data='blog' name='all-head-content'/>
+  
+  <!-- =============================== -->
+  <!-- PWA (Progressive Web App) Setup -->
+  <!-- =============================== -->
+  <meta content='#EE4D2D' name='theme-color'/>
+  <meta content='yes' name='mobile-web-app-capable'/>
+  <meta content='yes' name='apple-mobile-web-app-capable'/>
+  <meta content='Anturun Web' name='apple-mobile-web-app-title'/>
+  <meta content='black-translucent' name='apple-mobile-web-app-status-bar-style'/>
+  <!-- Ikon PWA Standar -->
+  <link href='https://cdn-icons-png.flaticon.com/512/3143/3143644.png' rel='apple-touch-icon'/>
+  <link href='https://cdn-icons-png.flaticon.com/512/3143/3143644.png' rel='icon' sizes='192x192' type='image/png'/>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src='https://cdn.tailwindcss.com'/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            anturun: &#39;#EE4D2D&#39;,
+            anturunhover: &#39;#D73211&#39;,
+            background: &#39;#F5F5F5&#39;
+          },
+          fontSize: {
+            &#39;xxs&#39;: &#39;0.65rem&#39;,
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet CSS & JS untuk Peta Interaktif & Rute -->
+  <link crossorigin='' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=' rel='stylesheet'/>
+  <link href='https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css' rel='stylesheet'/>
+  
+  <script crossorigin='' integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=' src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'/>
+  <script src='https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js'/>
+
+  <!-- LIBRARY QR CODE GENERATOR -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'/>
+
+  <!-- Essential Blogger Skin -->
+  <b:skin><![CDATA[
+    body { margin: 0; padding: 0; background-color: #F5F5F5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    #navbar-iframe { display: none !important; }
+    
+    /* Animasi Modal */
+    .modal-enter { animation: slideUp 0.3s ease-out forwards; }
+    .modal-leave { animation: slideDown 0.3s ease-out forwards; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+    
+    /* Fix Leaflet z-index & Sembunyikan Panel Instruksi Rute (Agar rapih di mobile) */
+    .leaflet-container { z-index: 10 !important; }
+    .leaflet-routing-container { display: none !important; }
+    .leaflet-routing-alt { display: none !important; }
+  ]]></b:skin>
+</head>
+<body class='bg-background text-gray-800 pb-20 md:pb-0 relative'>
+
+  <!-- Header Sticky Ala Anturun -->
+  <header class='bg-anturun text-white sticky top-0 z-40 shadow-sm'>
+    <div class='container mx-auto max-w-4xl px-3 py-3 flex items-center justify-between gap-3'>
+      <a class='text-white font-bold text-lg md:text-xl tracking-wide truncate flex-shrink-0 max-w-[100px] md:max-w-[200px]' expr:href='data:blog.homepageUrl'>
+        <data:blog.title/>
+      </a>
+      
+      <form action='/search' class='flex-grow flex items-center bg-white rounded-sm px-2 py-1 border border-transparent focus-within:border-orange-200 transition-colors' method='get'>
+        <input class='w-full outline-none text-sm text-gray-800 bg-transparent py-0.5' name='q' placeholder='Cari menu atau toko...' required='true' type='text'/>
+        <button aria-label='Cari' class='text-gray-400 hover:text-anturun ml-1 p-1 flex-shrink-0 cursor-pointer outline-none' type='submit'>
+          <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+        </button>
+      </form>
+      
+      <!-- Tombol Buka Keranjang -->
+      <button class='relative text-white flex-shrink-0 p-1 cursor-pointer' onclick='toggleCartModal()'>
+        <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+        <span class='cart-badge absolute -top-1 -right-1 bg-white text-anturun text-xxs font-bold px-1.5 py-0.5 rounded-full border border-anturun'>0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Kategori Menu -->
+  <b:if cond='data:view.isHomepage'>
+    <div class='bg-white mb-2 shadow-sm'>
+      <div class='container mx-auto max-w-4xl py-3 px-2'>
+        <div class='flex overflow-x-auto gap-4 no-scrollbar items-start'>
+          <a class='flex flex-col items-center min-w-[64px]' href='/search/label/Makanan'>
+            <div class='w-11 h-11 bg-orange-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner'>🍲</div>
+            <span class='text-xs mt-1.5 text-gray-700 text-center leading-tight'>Makanan</span>
+          </a>
+          <a class='flex flex-col items-center min-w-[64px]' href='/search/label/Minuman'>
+            <div class='w-11 h-11 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner'>🧋</div>
+            <span class='text-xs mt-1.5 text-gray-700 text-center leading-tight'>Minuman</span>
+          </a>
+          <a class='flex flex-col items-center min-w-[64px]' href='/search/label/Cemilan'>
+            <div class='w-11 h-11 bg-yellow-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner'>🍟</div>
+            <span class='text-xs mt-1.5 text-gray-700 text-center leading-tight'>Cemilan</span>
+          </a>
+          <a class='flex flex-col items-center min-w-[64px]' href='/search/label/Sayur'>
+            <div class='w-11 h-11 bg-green-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner'>🥗</div>
+            <span class='text-xs mt-1.5 text-gray-700 text-center leading-tight'>Sehat</span>
+          </a>
+          <a class='flex flex-col items-center min-w-[64px]' href='/search/label/Dessert'>
+            <div class='w-11 h-11 bg-pink-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner'>🍰</div>
+            <span class='text-xs mt-1.5 text-gray-700 text-center leading-tight'>Dessert</span>
+          </a>
+          <a class='flex flex-col items-center min-w-[64px]' href='/search/label/Promo'>
+            <div class='w-11 h-11 bg-red-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner text-anturun'>%</div>
+            <span class='text-xs mt-1.5 text-gray-700 text-center leading-tight font-bold'>Promo</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </b:if>
+
+  <!-- Area Konten Utama Blogger -->
+  <main class='container mx-auto max-w-4xl md:mt-4'>
+    <b:section id='main-content'>
+      <b:widget id='Blog1' locked='true' title='Postingan Blog' type='Blog' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='showDateHeader'>false</b:widget-setting>
+          <b:widget-setting name='style.textcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='showShareButtons'>true</b:widget-setting>
+          <b:widget-setting name='showCommentLink'>true</b:widget-setting>
+          <b:widget-setting name='style.urlcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='showAuthor'>false</b:widget-setting>
+          <b:widget-setting name='style.linkcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
+          <b:widget-setting name='style.bgcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='timestampLabel'/>
+          <b:widget-setting name='reactionsLabel'/>
+          <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
+          <b:widget-setting name='style.layout'>1x1</b:widget-setting>
+          <b:widget-setting name='showLabels'>true</b:widget-setting>
+          <b:widget-setting name='showLocation'>true</b:widget-setting>
+          <b:widget-setting name='postLabelsLabel'/>
+          <b:widget-setting name='showTimestamp'>true</b:widget-setting>
+          <b:widget-setting name='postsPerAd'>3</b:widget-setting>
+          <b:widget-setting name='showBacklinks'>false</b:widget-setting>
+          <b:widget-setting name='style.bordercolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='showInlineAds'>true</b:widget-setting>
+          <b:widget-setting name='showReactions'>false</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <b:if cond='data:view.isMultipleItems'>
+            
+            <div class='px-2 py-2 flex items-center justify-between bg-white md:bg-transparent md:px-0'>
+               <h2 class='text-anturun font-bold text-sm uppercase tracking-wide flex items-center' id='titleRekomendasi'>
+                 <svg class='w-4 h-4 mr-1' fill='currentColor' viewBox='0 0 20 20'><path d='M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z'/></svg>
+                 <b:if cond='data:view.isSearch'>
+                    Hasil Pencarian
+                 <b:else/>
+                    Rekomendasi Menu
+                 </b:if>
+               </h2>
+            </div>
+
+            <!-- Banner Profil Toko -->
+            <div class='hidden bg-white p-4 rounded-sm shadow-sm mb-4 mx-2 md:mx-0 items-center gap-4 border-l-4 border-anturun transition-all' id='storeHeaderPlaceholder'>
+               <div class='w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center text-2xl shadow-inner flex-shrink-0 border border-orange-200'>🏪</div>
+               <div class='flex flex-col'>
+                   <h2 class='text-lg md:text-xl font-bold text-gray-800 leading-tight mb-1' id='shTokoName'>Nama Toko</h2>
+                   <div class='flex items-center gap-2 flex-wrap'>
+                       <span class='text-[10px] font-bold px-2 py-0.5 rounded-sm inline-block hidden' id='shTokoStatus'/>
+                       <span class='text-xs font-medium text-gray-500' id='shTokoJam'/>
+                   </div>
+               </div>
+            </div>
+            
+            <div class='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 px-2 md:px-0 pb-4'>
+              <b:loop values='data:posts' var='post'>
+                <b:include data='post' name='postCard'/>
+              </b:loop>
+            </div>
+            <b:include name='nextprev'/>
+            
+          <!-- PEMISAHAN HALAMAN STATIS AGAR TIDAK BERCAMPUR -->
+          <b:elseif cond='data:view.isPage'/>
+            <!-- TAMPILAN HALAMAN STATIS (PAGES) -->
+            <b:loop values='data:posts' var='post'>
+              <div class='bg-white md:rounded-sm md:shadow-sm md:mt-4 p-4 min-h-[60vh]'>
+                 <div class='prose max-w-none text-sm text-gray-700 leading-relaxed'>
+                    <data:post.body/>
+                 </div>
+              </div>
+            </b:loop>
+
+          <b:else/>
+            <b:loop values='data:posts' var='post'>
+              <b:include data='post' name='postDetail'/>
+            </b:loop>
+          </b:if>
+        </b:includable>
+        <b:includable id='aboutPostAuthor'>
+  <div class='author-name'>
+    <a class='g-profile' expr:href='data:post.author.profileUrl' rel='author' title='author profile'>
+      <span>
+        <data:post.author.name/>
+      </span>
+    </a>
+  </div>
+  <div>
+    <span class='author-desc'>
+      <data:post.author.aboutMe/>
+    </span>
+  </div>
+</b:includable>
+        <b:includable id='addComments'>
+  <a expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick'>
+    <b:message name='messages.postAComment'/>
+  </a>
+</b:includable>
+        <b:includable id='commentAuthorAvatar'>
+  <div class='avatar-image-container'>
+    <img class='author-avatar' expr:src='data:comment.authorAvatarSrc' height='35' width='35'/>
+  </div>
+</b:includable>
+        <b:includable id='commentDeleteIcon' var='comment'>
+  <span expr:class='&quot;item-control &quot; + data:comment.adminClass'>
+    <b:if cond='data:showCmtPopup'>
+      <div class='goog-toggle-button'>
+        <div class='goog-inline-block comment-action-icon'/>
+      </div>
+    <b:else/>
+      <a class='comment-delete' expr:href='data:comment.deleteUrl' expr:title='data:messages.deleteComment'>
+        <img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+      </a>
+    </b:if>
+  </span>
+</b:includable>
+        <b:includable id='commentForm' var='post'>
+  <div class='comment-form'>
+    <a name='comment-form'/>
+    <h4 id='comment-post-message'><data:messages.postAComment/></h4>
+    <b:if cond='data:this.messages.blogComment != &quot;&quot;'>
+      <p><data:this.messages.blogComment/></p>
+    </b:if>
+    <b:include data='post' name='commentFormIframeSrc'/>
+    <iframe allowtransparency='allowtransparency' class='blogger-iframe-colorize blogger-comment-from-post' expr:height='data:cmtIframeInitialHeight ?: &quot;90px&quot;' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%'/>
+    <data:post.cmtfpIframe/>
+    <script type='text/javascript'>
+      BLOG_CMT_createIframe(&#39;<data:post.appRpcRelayPath/>&#39;);
+    </script>
+  </div>
+</b:includable>
+        <b:includable id='commentFormIframeSrc' var='post'>
+  <a expr:href='data:post.commentFormIframeSrc' id='comment-editor-src'/>
+</b:includable>
+        <b:includable id='commentItem' var='comment'>
+  <div class='comment' expr:id='&quot;c&quot; + data:comment.id'>
+    <b:include cond='data:blog.enabledCommentProfileImages' name='commentAuthorAvatar'/>
+
+    <div class='comment-block'>
+      <div class='comment-author'>
+        <b:if cond='data:comment.authorUrl'>
+          <b:message name='messages.authorSaidWithLink'>
+            <b:param expr:value='data:comment.author' name='authorName'/>
+            <b:param expr:value='data:comment.authorUrl' name='authorUrl'/>
+          </b:message>
+        <b:else/>
+          <b:message name='messages.authorSaid'>
+            <b:param expr:value='data:comment.author' name='authorName'/>
+          </b:message>
+        </b:if>
+      </div>
+      <div expr:class='&quot;comment-body&quot; + (data:comment.isDeleted ? &quot; deleted&quot; : &quot;&quot;)'>
+        <data:comment.body/>
+      </div>
+      <div class='comment-footer'>
+        <span class='comment-timestamp'>
+          <a expr:href='data:comment.url' title='comment permalink'>
+            <data:comment.timestamp/>
+          </a>
+          <b:include data='comment' name='commentDeleteIcon'/>
+        </span>
+      </div>
+    </div>
+  </div>
+</b:includable>
+        <b:includable id='commentList' var='comments'>
+  <div id='comments-block'>
+    <b:loop values='data:comments' var='comment'>
+      <b:include data='comment' name='commentItem'/>
+    </b:loop>
+  </div>
+</b:includable>
+        <b:includable id='commentPicker' var='post'>
+  <b:if cond='data:post.showThreadedComments'>
+    <b:include data='post' name='threadedComments'/>
+  <b:else/>
+    <b:include data='post' name='comments'/>
+  </b:if>
+</b:includable>
+        <b:includable id='comments' var='post'>
+  <section expr:class='&quot;comments&quot; + (data:post.embedCommentForm ? &quot; embed&quot; : &quot;&quot;)' expr:data-num-comments='data:post.numberOfComments' id='comments'>
+    <a name='comments'/>
+    <b:if cond='data:post.allowComments'>
+
+      <b:include name='commentsTitle'/>
+
+      <div expr:id='data:widget.instanceId + &quot;_comments-block-wrapper&quot;'>
+        <b:include cond='data:post.comments' data='post.comments' name='commentList'/>
+      </div>
+
+      <b:if cond='data:post.commentPagingRequired'>
+        <div class='paging-control-container'>
+          <b:if cond='data:post.hasOlderLinks'>
+            <a expr:class='data:post.oldLinkClass' expr:href='data:post.oldestLinkUrl'>
+              <data:messages.oldest/>
+            </a>
+            <a expr:class='data:post.oldLinkClass' expr:href='data:post.olderLinkUrl'>
+              <data:messages.older/>
+            </a>
+          </b:if>
+
+          <span class='comment-range-text'>
+            <data:post.commentRangeText/>
+          </span>
+
+          <b:if cond='data:post.hasNewerLinks'>
+            <a expr:class='data:post.newLinkClass' expr:href='data:post.newerLinkUrl'>
+              <data:messages.newer/>
+            </a>
+            <a expr:class='data:post.newLinkClass' expr:href='data:post.newestLinkUrl'>
+              <data:messages.newest/>
+            </a>
+          </b:if>
+        </div>
+      </b:if>
+
+      <div class='footer'>
+        <b:if cond='data:post.embedCommentForm'>
+          <b:if cond='data:post.allowNewComments'>
+            <b:include data='post' name='commentForm'/>
+          <b:else/>
+            <data:post.noNewCommentsText/>
+          </b:if>
+        <b:else/>
+          <b:if cond='data:post.allowComments'>
+            <b:include data='post' name='addComments'/>
+          </b:if>
+        </b:if>
+      </div>
+    </b:if>
+    <b:if cond='data:showCmtPopup'>
+      <div id='comment-popup'>
+        <iframe allowtransparency='allowtransparency' frameborder='0' id='comment-actions' name='comment-actions' scrolling='no'>
+        </iframe>
+      </div>
+    </b:if>
+  </section>
+</b:includable>
+        <b:includable id='commentsTitle'>
+  <h3 class='title'><data:messages.comments/></h3>
+</b:includable>
+        <b:includable id='feedLinks'>
+  <b:if cond='!data:view.isPost'> <!-- Blog feed links -->
+    <b:if cond='data:feedLinks'>
+      <div class='blog-feeds'>
+        <b:include data='feedLinks' name='feedLinksBody'/>
+      </div>
+    </b:if>
+  <b:else/> <!--Post feed links -->
+    <div class='post-feeds'>
+      <b:loop values='data:posts' var='post'>
+        <b:if cond='data:post.allowComments and data:post.feedLinks'>
+          <b:include data='post.feedLinks' name='feedLinksBody'/>
+        </b:if>
+      </b:loop>
+    </div>
+  </b:if>
+</b:includable>
+        <b:includable id='feedLinksBody' var='links'>
+  <div class='feed-links'>
+  <data:messages.subscribeTo/>
+  <b:loop values='data:links' var='f'>
+     <a class='feed-link' expr:href='data:f.url' expr:type='data:f.mimeType' target='_blank'><data:f.name/> (<data:f.feedType/>)</a>
+  </b:loop>
+  </div>
+</b:includable>
+        <b:includable id='homePageLink'>
+  <a class='home-link' expr:href='data:blog.homepageUrl'>
+    <data:messages.home/>
+  </a>
+</b:includable>
+        <b:includable id='iframeComments' var='post'>
+  <!-- G+ comments, no longer available. The includable is retained for backwards-compatibility. -->
+</b:includable>
+        <b:includable id='inlineAd' var='post'>
+  <b:if cond='!data:view.isPreview'>
+    <b:if cond='data:this.adCode or data:this.adClientId or data:blog.adsenseClientId'>
+      <!-- Ad -->
+      <div class='inline-ad'>
+        <b:if cond='data:this.adCode != &quot;&quot;'>
+          <data:this.adCode/>
+        <b:else/>
+          <b:include cond='data:this.adClientId or data:blog.adsenseClientId' name='defaultAdUnit'/>
+        </b:if>
+      </div>
+    </b:if>
+  <b:else/>
+    <div class='inline-ad'>
+      <div class='inline-ad-placeholder'>
+        <span><b:message name='messages.adsGoHere'/></span>
+      </div>
+    </div>
+  </b:if>
+</b:includable>
+        <b:includable id='nextPageLink'>
+  <a class='blog-pager-older-link' expr:href='data:olderPageUrl' expr:id='data:widget.instanceId + &quot;_blog-pager-older-link&quot;' expr:title='data:messages.olderPosts'>
+    <data:messages.olderPosts/>
+  </a>
+</b:includable>
+        <b:includable id='nextprev'>
+          <div class='flex justify-center items-center py-6 gap-4'>
+            <b:if cond='data:newerPageUrl'>
+              <a class='px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm rounded-sm hover:bg-gray-50 shadow-sm' expr:href='data:newerPageUrl'>&lt; Sebelumnya</a>
+            </b:if>
+            <b:if cond='data:olderPageUrl'>
+              <a class='px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm rounded-sm hover:bg-gray-50 shadow-sm' expr:href='data:olderPageUrl'>Selanjutnya &gt;</a>
+            </b:if>
+          </div>
+        </b:includable>
+        <b:includable id='post' var='post'>
+  <div class='post'>
+    <b:include data='post' name='postMeta'/>
+    <b:include data='post' name='postTitle'/>
+    <b:include name='headerByline'/>
+    <b:if cond='data:view.isSingleItem'>
+      <b:include data='post' name='postBody'/>
+    <b:else/>
+      <b:include data='post' name='postBodySnippet'/>
+      <b:include data='post' name='postJumpLink'/>
+    </b:if>
+    <b:include data='post' name='postFooter'/>
+  </div>
+</b:includable>
+        <b:includable id='postBody' var='post'>
+  <!-- If metaDescription is empty, use the post body as the schema.org description too, for G+/FB snippeting. -->
+  <div class='post-body entry-content float-container' expr:id='&quot;post-body-&quot; + data:post.id'>
+    <data:post.body/>
+  </div>
+</b:includable>
+        <b:includable id='postBodySnippet' var='post'>
+  <b:include data='post' name='postBody'/>
+</b:includable>
+        <b:includable id='postCard' var='post'>
+          <article class='bg-white rounded-sm shadow-sm border border-gray-100 hover:-translate-y-1 hover:border-anturun hover:shadow-md transition-all relative flex flex-col post-container-parse' expr:data-image='data:post.featuredImage ? data:post.featuredImage : &quot;&quot;' expr:data-title='data:post.title'>
+            
+            <div class='hidden post-body-raw'><data:post.body/></div>
+
+            <a class='absolute inset-0 z-10' expr:href='data:post.url' expr:title='data:post.title'/>
+
+            <b:loop values='data:post.labels' var='label'>
+              <b:if cond='data:label.name == &quot;Promo&quot;'>
+                <div class='absolute top-0 left-0 bg-anturun text-white text-[10px] px-2 py-0.5 z-20 rounded-br-lg font-bold shadow-sm flex items-center'>
+                   Promo
+                </div>
+              </b:if>
+            </b:loop>
+
+            <div class='relative w-full pt-[100%] bg-gray-100'>
+              <b:if cond='data:post.featuredImage'>
+                <img class='absolute inset-0 w-full h-full object-cover' expr:alt='data:post.title' expr:src='data:post.featuredImage'/>
+              <b:else/>
+                <div class='absolute inset-0 flex items-center justify-center text-gray-400 text-xs'>No Image</div>
+              </b:if>
+              <div class='sc-overlay-tutup absolute inset-0 bg-black/60 z-20 hidden items-center justify-center'>
+                 <span class='bg-gray-800 text-white font-bold px-3 py-1 rounded-sm text-xs border border-gray-600 shadow-sm'>TUTUP</span>
+              </div>
+            </div>
+
+            <div class='p-2 flex flex-col flex-grow z-20 pointer-events-none'>
+              <h2 class='text-xs md:text-sm text-gray-800 line-clamp-2 leading-tight min-h-[32px] mb-1'><data:post.title/></h2>
+              
+              <div class='flex flex-col mt-auto'>
+                <div class='sc-hargacoret-container hidden items-center text-gray-400 text-[9px] line-through mb-0.5'>
+                  Rp<span class='sc-hargacoret ml-0.5'>0</span>
+                </div>
+                <div class='text-anturun text-sm md:text-base font-semibold flex items-start'>
+                  <span class='text-[10px] mt-0.5 mr-0.5'>Rp</span>
+                  <span class='sc-harga truncate max-w-[100px]'>0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class='px-2 pb-2 mt-1 z-30 flex items-center justify-between border-t border-gray-50 pt-2'>
+              <div class='flex items-center text-[9px] text-gray-500 gap-1'>
+                <svg class='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/><path d='M15 11a3 3 0 11-6 0 3 3 0 016 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+                <span class='sc-toko truncate max-w-[60px]'>Mitra Toko</span>
+              </div>
+              
+              <button class='btn-add-cart bg-orange-50 text-anturun border border-anturun hover:bg-anturun hover:text-white rounded-sm p-1 transition-colors flex items-center cursor-pointer'>
+                <svg class='w-3 h-3 pointer-events-none' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+                <span class='text-[10px] font-bold ml-0.5 leading-none pointer-events-none'>+</span>
+              </button>
+            </div>
+          </article>
+        </b:includable>
+        <b:includable id='postCommentsAndAd' var='post'>
+  <article class='post-outer-container'>
+    <!-- Post title and body -->
+    <div class='post-outer'>
+      <b:include data='post' name='post'/>
+    </div>
+
+    <!-- Comments -->
+    <b:include cond='data:view.isSingleItem' data='post' name='commentPicker'/>
+
+    <!-- Show ad inside post container, after comments, if single item. -->
+    <b:include cond='data:view.isSingleItem and data:post.includeAd' data='post' name='inlineAd'/>
+  </article>
+
+  <!-- Show ad outside post container (between posts) for feed pages. -->
+  <b:include cond='data:view.isMultipleItems and data:post.includeAd' data='post' name='inlineAd'/>
+</b:includable>
+        <b:includable id='postCommentsLink'>
+  <b:if cond='data:view.isMultipleItems'>
+    <span class='byline post-comment-link container'>
+      <b:include cond='data:post.commentSource != 1' name='commentsLink'/>
+    </span>
+  </b:if>
+</b:includable>
+        <b:includable id='postDetail' var='post'>
+          <div class='post-container-parse' expr:data-image='data:post.featuredImage ? data:post.featuredImage : &quot;&quot;' expr:data-title='data:post.title'>
+            
+            <div class='hidden post-body-raw'><data:post.body/></div>
+
+            <div class='bg-white md:rounded-sm md:shadow-sm md:overflow-hidden md:mt-4'>
+              <div class='w-full bg-gray-100 relative max-h-[400px] flex justify-center'>
+                <b:if cond='data:post.featuredImage'>
+                  <img class='w-full max-w-md h-auto aspect-square object-cover' expr:alt='data:post.title' expr:src='data:post.featuredImage'/>
+                </b:if>
+              </div>
+              
+              <div class='p-4 border-b border-gray-100'>
+                <div class='sc-hargacoret-container hidden items-center mb-1'>
+                   <span class='text-gray-400 text-sm line-through'>Rp<span class='sc-hargacoret ml-0.5'>0</span></span>
+                   <span class='ml-2 bg-red-100 text-anturun text-[10px] font-bold px-1.5 py-0.5 rounded-sm border border-red-200'>PROMO</span>
+                </div>
+                
+                <div class='text-anturun text-2xl font-bold mb-2 flex items-start'>
+                   <span class='text-sm mt-1.5 mr-1'>Rp</span>
+                   <span class='sc-harga'>0</span>
+                </div>
+                
+                <h1 class='text-lg font-medium text-gray-800 leading-snug'><data:post.title/></h1>
+              </div>
+
+              <div class='p-4 bg-white mt-2 border-y border-gray-100 md:border-none'>
+                <div class='flex flex-wrap gap-1 mb-3'>
+                  <b:loop values='data:post.labels' var='label'>
+                    <span class='bg-gray-50 text-gray-600 text-[11px] px-2.5 py-1 rounded-full border border-gray-200'>
+                      #<data:label.name/>
+                    </span>
+                  </b:loop>
+                </div>
+                
+                <div class='text-sm text-gray-700 bg-orange-50/50 p-3 rounded-sm border-l-2 border-anturun'>
+                  <span class='font-semibold text-gray-800 text-xs block mb-1'>Ringkasan Menu:</span>
+                  <p class='sc-ringkasan line-clamp-3 leading-relaxed text-gray-600'>Tidak ada ringkasan yang tersedia untuk produk ini.</p>
+                </div>
+              </div>
+
+              <div class='p-4 flex items-center gap-3 bg-white border-b border-gray-100 md:border-none mb-24 md:mb-4'>
+                <div class='w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-2xl shadow-inner border border-gray-300'>🏪</div>
+                <div class='flex-grow'>
+                  <div class='sc-toko font-bold text-gray-800'>Mitra Toko</div>
+                  <div class='sc-jam text-[10px] text-gray-500 mt-0.5'/>
+                </div>
+                <button class='border border-anturun text-anturun px-3 py-1.5 rounded-sm text-xs font-medium hover:bg-orange-50 transition cursor-pointer' onclick='kunjungiTokoPencarian(this)'>
+                  Kunjungi Toko
+                </button>
+              </div>
+            </div>
+
+            <div class='fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex z-40 md:sticky md:bottom-auto md:mt-4 md:rounded-sm shadow-[0_-2px_10px_rgba(0,0,0,0.05)]'>
+              <button class='btn-add-cart w-1/2 bg-orange-50 text-anturun hover:bg-orange-100 font-bold py-3.5 transition-colors flex items-center justify-center gap-1.5'>
+                <svg class='w-4 h-4 md:w-5 md:h-5 pointer-events-none' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+                <span class='text-xs md:text-sm pointer-events-none'>Keranjang</span>
+              </button>
+              <button class='btn-beli-sekarang w-1/2 bg-anturun hover:bg-anturunhover text-white font-bold py-3.5 transition-colors flex flex-col items-center justify-center' onclick='toggleCartModal()'>
+                <span class='text-xs md:text-sm'>Beli Sekarang</span>
+              </button>
+            </div>
+          </div>
+        </b:includable>
+        <b:includable id='postFooter' var='post'>
+  <div class='post-footer'>
+    <b:include name='footerBylines'/>
+    <b:include data='post' name='postFooterAuthorProfile'/>
+  </div>
+</b:includable>
+        <b:includable id='postFooterAuthorProfile' var='post'>
+  <b:if cond='data:post.author.aboutMe and data:view.isPost'>
+    <div class='author-profile'>
+      <b:if cond='data:post.author.authorPhoto.url'>
+        <img class='author-image' expr:src='data:post.author.authorPhoto.url' width='50px'/>
+        <div class='author-about'>
+          <b:include data='post' name='aboutPostAuthor'/>
+        </div>
+      <b:else/>
+        <b:include data='post' name='aboutPostAuthor'/>
+      </b:if>
+    </div>
+  </b:if>
+</b:includable>
+        <b:includable id='postHeader' var='post'>
+  <b:include name='headerByline'/>
+</b:includable>
+        <b:includable id='postMeta' var='post'>
+  <b:include data='post' name='postMetadataJSON'/>
+</b:includable>
+        <b:includable id='postPagination'>
+  <div class='blog-pager container' id='blog-pager'>
+    <b:include cond='data:newerPageUrl' name='previousPageLink'/>
+    <b:include cond='data:olderPageUrl' name='nextPageLink'/>
+    <b:include cond='data:view.url != data:blog.homepageUrl' name='homePageLink'/>
+  </div>
+</b:includable>
+        <b:includable id='postTitle' var='post'>
+  <a expr:name='data:post.id'/>
+  <b:if cond='data:post.title != &quot;&quot;'>
+    <h3 class='post-title entry-title'>
+      <b:if cond='data:post.link or (data:post.url and data:view.url != data:post.url)'>
+        <a expr:href='data:post.link ?: data:post.url'><data:post.title/></a>
+      <b:else/>
+        <data:post.title/>
+      </b:if>
+    </h3>
+  </b:if>
+</b:includable>
+        <b:includable id='previousPageLink'>
+  <a class='blog-pager-newer-link' expr:href='data:newerPageUrl' expr:id='data:widget.instanceId + &quot;_blog-pager-newer-link&quot;' expr:title='data:messages.newerPosts'>
+    <data:messages.newerPosts/>
+  </a>
+</b:includable>
+        <b:includable id='threadedCommentForm' var='post'>
+  <div class='comment-form'>
+    <a name='comment-form'/>
+    <h4 id='comment-post-message'><data:messages.postAComment/></h4>
+    <b:if cond='data:this.messages.blogComment != &quot;&quot;'>
+      <p><data:this.messages.blogComment/></p>
+    </b:if>
+    <b:include data='post' name='commentFormIframeSrc'/>
+    <iframe allowtransparency='allowtransparency' class='blogger-iframe-colorize blogger-comment-from-post' expr:height='data:cmtIframeInitialHeight ?: &quot;90px&quot;' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%'/>
+    <data:post.cmtfpIframe/>
+    <script type='text/javascript'>
+      BLOG_CMT_createIframe(&#39;<data:post.appRpcRelayPath/>&#39;);
+    </script>
+  </div>
+</b:includable>
+        <b:includable id='threadedCommentJs' var='post'>
+  <script async='async' expr:src='data:post.commentSrc' type='text/javascript'/>
+  <b:template-script inline='true' name='threaded_comments'/>
+  <script type='text/javascript'>
+    blogger.widgets.blog.initThreadedComments(
+        <data:post.commentJso/>,
+        <data:post.commentMsgs/>,
+        <data:post.commentConfig/>);
+  </script>
+</b:includable>
+        <b:includable id='threadedComments' var='post'>
+  <section class='comments threaded' expr:data-embed='data:post.embedCommentForm' expr:data-num-comments='data:post.numberOfComments' id='comments'>
+    <a name='comments'/>
+
+    <b:include name='commentsTitle'/>
+
+    <div class='comments-content'>
+      <b:if cond='data:post.embedCommentForm'>
+        <b:include data='post' name='threadedCommentJs'/>
+      </b:if>
+      <div id='comment-holder'>
+         <data:post.commentHtml/>
+      </div>
+    </div>
+
+    <p class='comment-footer'>
+      <b:if cond='data:post.allowNewComments'>
+        <b:include data='post' name='threadedCommentForm'/>
+      <b:else/>
+        <data:post.noNewCommentsText/>
+      </b:if>
+      <b:if cond='data:post.showManageComments'>
+        <b:include data='post' name='manageComments'/>
+      </b:if>
+    </p>
+
+    <b:if cond='data:showCmtPopup'>
+      <div id='comment-popup'>
+        <iframe allowtransparency='allowtransparency' frameborder='0' id='comment-actions' name='comment-actions' scrolling='no'>
+        </iframe>
+      </div>
+    </b:if>
+  </section>
+</b:includable>
+        <b:includable id='tooltipCss'>
+  <!-- LINT.IfChange -->
+  <style>
+    .post-body a.b-tooltip-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .post-body a.b-tooltip-container .b-tooltip {
+      display: block !important;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-20%, 1px);
+      visibility: hidden;
+      opacity: 0;
+      z-index: 1;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .post-body a.b-tooltip-container .b-tooltip iframe {
+      width: 200px;
+      height: 198px;
+      max-width: none;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (hover: hover) {
+      .post-body a.b-tooltip-container:hover .b-tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+    }
+  </style>
+  <!-- LINT.ThenChange(//depot/google3/java/com/google/blogger/b2/layouts/widgets/v2-style.css) -->
+</b:includable>
+      </b:widget>
+    </b:section>
+  </main>
+
+  <!-- Bottom Navigation Khusus Mobile (Tidak Tampil Saat Membaca Produk) -->
+  <b:if cond='data:view.isMultipleItems or data:view.isPage'>
+    <nav class='fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-between px-2 py-1.5 z-30 md:hidden pb-safe'>
+      <a class='flex-1 flex flex-col items-center justify-center text-anturun' expr:href='data:blog.homepageUrl'>
+        <svg class='w-6 h-6 mb-1' fill='currentColor' viewBox='0 0 20 20'><path d='M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z'/></svg>
+        <span class='text-[10px]'>Beranda</span>
+      </a>
+      
+      <!-- Tombol Toko -->
+      <a class='flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-anturun' href='/p/toko.html'>
+        <svg class='w-6 h-6 mb-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M3 3h18v4H3V3zm16 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V7m4 4v4m4-4v4m4-4v4' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+        <span class='text-[10px]'>Toko</span>
+      </a>
+
+      <button class='flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-anturun relative' onclick='toggleCartModal()'>
+        <svg class='w-6 h-6 mb-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+        <span class='cart-badge absolute top-0 right-3 bg-anturun text-white text-[8px] font-bold px-1 py-0.5 rounded-full'>0</span>
+        <span class='text-[10px]'>Keranjang</span>
+      </button>
+
+      <button class='flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-anturun' onclick='toggleProfileModal()'>
+        <svg class='w-6 h-6 mb-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+        <span class='text-[10px]'>Saya</span>
+      </button>
+    </nav>
+  </b:if>
+
+  <!-- =============================== -->
+  <!-- MODAL KERANJANG & CHECKOUT WA   -->
+  <!-- =============================== -->
+  <div class='fixed inset-0 z-[100] bg-black/60 hidden flex-col justify-end transition-opacity' id='cartModalWrapper'>
+    <div class='bg-background w-full h-[85vh] md:max-h-[85vh] md:max-w-md md:mx-auto rounded-t-xl flex flex-col shadow-2xl relative translate-y-full transition-transform duration-300 overflow-hidden' id='cartModal'>
+      
+      <div class='bg-white rounded-t-xl z-10 shadow-sm flex-shrink-0'>
+        <div class='w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-2'/>
+        <div class='px-4 pb-3 pt-2 flex justify-between items-center'>
+          <h3 class='font-bold text-gray-800 text-lg'>Checkout</h3>
+          <button class='text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1 border-none outline-none' onclick='toggleCartModal()'>
+            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M6 18L18 6M6 6l12 12' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class='flex-grow overflow-y-auto space-y-2 pb-4' id='cartScrollArea'>
+        
+        <div class='bg-white p-4 cursor-pointer hover:bg-orange-50 transition' onclick='bukaProfilDariCart()'>
+          <div class='flex items-start gap-3'>
+            <svg class='w-5 h-5 text-anturun mt-0.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/><path d='M15 11a3 3 0 11-6 0 3 3 0 016 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+            <div class='flex-grow'>
+              <h4 class='font-bold text-gray-800 text-sm mb-1'>Alamat Pengiriman</h4>
+              <div class='text-xs text-gray-600 leading-relaxed' id='displayAlamatCart'>
+                <span class='text-anturun'>Klik di sini untuk mengisi alamat pengiriman &amp; data penerima.</span>
+              </div>
+            </div>
+            <svg class='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M9 5l7 7-7 7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+          </div>
+          <div class='h-1 w-full bg-[repeating-linear-gradient(45deg,#EE4D2D,#EE4D2D_10px,transparent_10px,transparent_20px,#3b82f6_20px,#3b82f6_30px,transparent_30px,transparent_40px)] mt-4 opacity-50'/>
+        </div>
+
+        <div class='space-y-2' id='cartItemsContainer'/>
+
+        <div class='bg-white p-4'>
+          <h4 class='font-bold text-gray-800 text-sm mb-3'>Metode Pembayaran</h4>
+          <div class='flex flex-col gap-2'>
+             <label class='flex items-center justify-between cursor-pointer border border-gray-200 p-3 rounded-sm hover:border-anturun'>
+               <span class='font-medium text-gray-700 text-sm'>COD (Bayar di Tempat)</span>
+               <input checked='checked' class='accent-anturun w-4 h-4' name='metode' type='radio' value='COD'/>
+             </label>
+             <label class='flex items-center justify-between cursor-pointer border border-gray-200 p-3 rounded-sm hover:border-anturun'>
+               <span class='font-medium text-gray-700 text-sm flex flex-col'>
+                  Transfer Bank / QRIS
+                  <span class='text-[10px] text-anturun mt-0.5'>Kode QR akan muncul setelah klik Buat Pesanan</span>
+               </span>
+               <input class='accent-anturun w-4 h-4' name='metode' type='radio' value='QRIS'/>
+             </label>
+          </div>
+        </div>
+        
+        <div class='bg-white p-4'>
+          <label class='text-gray-800 text-sm font-bold flex justify-between items-center mb-2'>
+             <span>Catatan Pesanan</span>
+             <span class='text-gray-400 text-xs font-normal'>Opsional</span>
+          </label>
+          <input class='w-full bg-gray-50 border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-anturun text-sm' id='waCatatan' placeholder='Cth: Pedas manis, jangan pakai seledri...' type='text'/>
+        </div>
+
+        <div class='bg-white p-4'>
+          <label class='text-gray-800 text-sm font-bold flex justify-between items-center mb-2'>
+             <span>Voucher Promo</span>
+          </label>
+          <div class='flex gap-2'>
+             <input class='w-full bg-gray-50 border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-anturun text-sm uppercase transition' id='inputVoucher' placeholder='Masukkan kode voucher' type='text'/>
+             <button class='bg-gray-800 text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-black transition whitespace-nowrap' onclick='terapkanVoucher()'>Terapkan</button>
+          </div>
+          <div class='text-[11px] mt-1.5 hidden' id='msgVoucher'/>
+        </div>
+
+        <div class='bg-white p-4 space-y-3'>
+          <h4 class='font-bold text-gray-800 text-sm mb-2 flex items-center gap-1'>
+             <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+             Rincian Pembayaran
+          </h4>
+          <div class='flex justify-between text-xs text-gray-500'>
+             <span>Subtotal Produk</span>
+             <span id='txtSubtotal'>Rp 0</span>
+          </div>
+          <div class='flex justify-between text-xs text-gray-500'>
+             <span>Pengiriman <span class='text-[10px] text-gray-400 font-medium ml-0.5' id='cartJarakText'/></span>
+             <span id='txtOngkir'>Rp 5.000</span>
+          </div>
+          <div class='flex justify-between text-xs text-gray-500'>
+             <span>Biaya Layanan</span>
+             <span id='txtLayanan'>Rp 1.000</span>
+          </div>
+          <div class='flex justify-between text-xs text-gray-500 hidden' id='rowMultiToko'>
+             <span>Biaya Beda Toko</span>
+             <span id='txtMultiToko'>Rp 0</span>
+          </div>
+          <div class='flex justify-between text-xs text-green-600 font-medium'>
+             <span>Total Diskon Promo</span>
+             <span id='txtDiskon'>-Rp 0</span>
+          </div>
+          <div class='flex justify-between text-xs text-anturun font-medium hidden' id='rowVoucher'>
+             <span class='flex items-center'>
+               Diskon Voucher 
+               <span class='text-[9px] bg-red-100 text-anturun px-1.5 py-0.5 rounded-sm ml-1.5 border border-red-200' id='txtVoucherName'/>
+             </span>
+             <span id='txtVoucherDiscount'>-Rp 0</span>
+          </div>
+
+          <div class='border-t border-dashed border-gray-200 pt-3 mt-1 flex justify-between items-center'>
+             <span class='font-bold text-gray-800 text-sm'>Total Pembayaran</span>
+             <span class='font-bold text-anturun text-lg' id='txtTotal'>Rp 0</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class='bg-white border-t p-3 flex justify-between items-center flex-shrink-0 z-20'>
+        <div class='flex flex-col ml-2'>
+           <span class='text-[10px] text-gray-500'>Total Pembayaran</span>
+           <span class='text-anturun font-bold text-lg leading-tight' id='txtTotalBottom'>Rp 0</span>
+        </div>
+        <button class='bg-anturun hover:bg-anturunhover text-white font-bold py-3 px-8 rounded-sm shadow-sm transition' onclick='prosesCheckout()'>
+          Buat Pesanan
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- MODAL SAYA (PROFIL PENERIMA)    -->
+  <!-- =============================== -->
+  <div class='fixed inset-0 z-[110] bg-black/60 hidden flex-col justify-end transition-opacity' id='profileModalWrapper'>
+    <div class='bg-gray-100 w-full h-[85vh] md:max-h-[85vh] md:max-w-md md:mx-auto rounded-t-2xl flex flex-col shadow-2xl relative translate-y-full transition-transform duration-300 overflow-hidden' id='profileModal'>
+      
+      <div class='bg-white border-b rounded-t-2xl z-10 shadow-sm flex-shrink-0'>
+        <div class='w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-2'/>
+        <div class='px-4 pb-3 pt-2 flex justify-between items-center'>
+          <div class='flex items-center gap-2'>
+             <button class='text-gray-400 hover:text-anturun mr-1 border-none outline-none' onclick='toggleProfileModal()'>
+               <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M15 19l-7-7 7-7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+             </button>
+             <h3 class='font-bold text-gray-800 text-lg'>Data Penerima</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class='flex-grow overflow-y-auto p-4 pb-6' id='profileScrollArea'>
+        <div class='bg-white p-4 rounded-sm shadow-sm border border-gray-200'>
+          <p class='text-xs text-gray-500 mb-4'>Pastikan data yang Anda masukkan benar agar kurir mudah menemukan lokasi Anda.</p>
+          
+          <div class='flex gap-2 mb-4'>
+             <button class='flex-1 py-2 px-1 truncate text-xs font-bold rounded-sm border border-anturun bg-anturun text-white shadow-sm transition outline-none' id='tab-profile-0' onclick='switchProfile(0)' type='button'>Alamat 1</button>
+             <button class='flex-1 py-2 px-1 truncate text-xs font-bold rounded-sm border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition outline-none' id='tab-profile-1' onclick='switchProfile(1)' type='button'>Alamat 2</button>
+             <button class='flex-1 py-2 px-1 truncate text-xs font-bold rounded-sm border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition outline-none' id='tab-profile-2' onclick='switchProfile(2)' type='button'>Alamat 3</button>
+          </div>
+
+          <div class='space-y-4 text-sm'>
+            <div>
+              <label class='block text-gray-500 mb-1 text-xs'>Label Alamat (Opsional)</label>
+              <input class='w-full border border-gray-300 rounded-sm px-3 py-2.5 outline-none focus:border-anturun' id='profLabel' maxlength='15' placeholder='Cth: Rumah, Kantor, Kost' type='text'/>
+            </div>
+            <div>
+              <label class='block text-gray-500 mb-1 text-xs'>Nama Lengkap</label>
+              <input class='w-full border border-gray-300 rounded-sm px-3 py-2.5 outline-none focus:border-anturun' id='profNama' placeholder='Cth: Budi Santoso' type='text'/>
+            </div>
+            <div>
+              <label class='block text-gray-500 mb-1 text-xs'>Nomor WhatsApp Aktif</label>
+              <input class='w-full border border-gray-300 rounded-sm px-3 py-2.5 outline-none focus:border-anturun' id='profNomor' placeholder='08123456789' type='number'/>
+            </div>
+            <div>
+              <label class='block text-gray-500 mb-1 text-xs'>Alamat Pengiriman (Sesuai KTP/Tujuan)</label>
+              <textarea class='w-full border border-gray-300 rounded-sm px-3 py-2.5 outline-none focus:border-anturun' id='profAlamat' placeholder='Nama Jalan, RT/RW, Kecamatan, Kota, Patokan Rumah (Cth: Pagar Hitam depan Warung)' rows='3'/>
+            </div>
+            
+            <div>
+              <label class='block text-gray-500 mb-1 text-xs flex justify-between items-center'>
+                <span>Pilih Titik Lokasi Pengantaran</span>
+                <button class='text-anturun font-medium bg-orange-50 px-2 py-1 rounded' id='btnGetLocation' onclick='getLocation()' type='button'>📍 Lacak Lokasi Saya</button>
+              </label>
+              
+              <div class='mb-2 text-[11px] font-bold text-anturun flex justify-between bg-orange-50 p-2 rounded border border-orange-100'>
+                 <span>🚗 Jarak dari Toko:</span>
+                 <span id='displayJarak'>Menghitung...</span>
+              </div>
+              
+              <div class='w-full h-48 border border-gray-300 rounded-sm mb-2 relative z-0' id='mapContainer'/>
+              
+              <input class='w-full border border-gray-300 rounded-sm px-3 py-2.5 outline-none text-[10px] text-gray-500 bg-gray-50' id='profKordinat' placeholder='Link koordinat akan tampil di sini...' readonly='readonly' type='text'/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='bg-white border-t p-3 flex-shrink-0 z-20'>
+        <button class='w-full bg-anturun hover:bg-anturunhover text-white font-bold py-3.5 rounded-sm shadow-sm transition border-none outline-none' onclick='saveMultiProfile(event)'>
+          Simpan Data Pengiriman
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- MODAL QRIS DINAMIS              -->
+  <!-- =============================== -->
+  <div class='fixed inset-0 z-[120] bg-black/60 hidden flex-col justify-center items-center transition-opacity p-4' id='qrisModalWrapper'>
+    <div class='bg-white w-full max-w-sm rounded-xl flex flex-col shadow-2xl relative p-6 text-center transform transition-transform scale-100'>
+       <h3 class='font-bold text-gray-800 text-lg mb-1'>Scan QRIS Untuk Bayar</h3>
+       <p class='text-xs text-gray-500 mb-4'>Total Pembayaran: <br/><span class='font-bold text-anturun text-2xl' id='qrisTotalText'>Rp 0</span></p>
+       
+       <div class='mx-auto flex justify-center items-center mb-3 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 min-h-[220px] min-w-[220px]' id='qris-container'/>
+       
+       <!-- Tombol Download QRIS -->
+       <button class='mb-4 bg-anturun text-white px-5 py-2.5 rounded-md shadow-sm text-xs font-bold flex items-center justify-center mx-auto hover:bg-anturunhover transition border-none outline-none' onclick='downloadQRIS()' type='button'>
+          <svg class='w-4 h-4 mr-1.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/></svg>
+          Simpan QRIS ke Galeri
+       </button>
+       
+       <p class='text-[11px] text-gray-400 mb-6 px-4'>Pastikan nominal yang muncul di aplikasi pembayaran sesuai sebelum Anda memasukkan PIN.</p>
+       
+       <div class='flex gap-2 w-full'>
+          <button class='w-1/3 border border-gray-300 text-gray-600 rounded-sm py-2.5 text-sm font-bold hover:bg-gray-50 transition' onclick='tutupModalQRIS()'>Batal</button>
+          <button class='w-2/3 bg-anturun hover:bg-anturunhover text-white rounded-sm py-2.5 text-sm font-bold transition' onclick='lanjutWAPascaQRIS()'>Saya Sudah Bayar</button>
+       </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SCRIPT UTAMA ANTURUN (INLINE)              -->
+  <!-- ========================================== -->
+  <script type='text/javascript'>
+  //<![CDATA[
+  // ==========================================
+  // ANTURUN.JS - Core Logic Application
+  // ==========================================
+
+  // -- PENGATURAN TOKO & BIAYA --
+  const NOMOR_WA_ADMIN = "6285601232027"; // Format WA 62
+  const BIAYA_LAYANAN = 1000;
+  const BASE_ONGKIR = 5000;
+  const ONGKIR_PER_KM = 2000;
+  const BIAYA_MULTI_TOKO_PER_EXTRA = 2000; // Biaya per toko ekstra
+
+  // -- PENGATURAN QRIS STATIS ANDA --
+  const STRING_QRIS_STATIS = "00020101021126570011ID.DANA.WWW011893600915306035130202090603513020303UMI51440014ID.CO.QRIS.WWW0215ID10200435286340303UMI5204573253033605802ID5911Waroeng ANU6014Kab. Indramayu610545261630450E4"; 
+
+  // -- PENGATURAN VOUCHER --
+  const VOUCHERS = {
+      "HEMAT10K": { type: "nominal", value: 10000, minPurchase: 50000, desc: "Diskon Rp 10.000", maxUsesPerDay: 1 },
+      "DISKON20": { type: "percent", value: 20, maxDiscount: 15000, minPurchase: 40000, desc: "Diskon 20%", maxUsesPerDay: 2 }
+  };
+  let appliedVoucher = null;
+
+  // -- STATE DATA & VARIABLE GLOBAL --
+  let cart = JSON.parse(localStorage.getItem('shopeefood_cart')) || [];
+  let buyerInfo = JSON.parse(localStorage.getItem('shopeefood_buyer')) || {
+      nama: '', nomor: '', alamat: '', kordinat: '', jarak: 0, lastStoreConfig: ''
+  };
+
+  // Data Checkout Sementara
+  let pendingCheckoutData = null;
+
+  // Peta Leaflet Variable
+  let map;
+  let routingControl = null;
+  let mapInitialized = false;
+
+  // Multi Profile Variabel
+  let multiProfiles = JSON.parse(localStorage.getItem('anturun_multi_profiles')) || [
+      { label: 'Alamat 1', nama: '', nomor: '', alamat: '', kordinat: '', jarak: 0 },
+      { label: 'Alamat 2', nama: '', nomor: '', alamat: '', kordinat: '', jarak: 0 },
+      { label: 'Alamat 3', nama: '', nomor: '', alamat: '', kordinat: '', jarak: 0 }
+  ];
+  let activeProfileIdx = parseInt(localStorage.getItem('anturun_active_profile_idx')) || 0;
+  // Pastikan profil lama yang belum punya label tidak error
+  multiProfiles.forEach((p, i) => { if(!p.label) p.label = 'Alamat ' + (i+1); });
+
+
+  // ==========================================
+  // 1. UTILITAS & FUNGSI UMUM
+  // ==========================================
+  function getTodayDateStr() {
+      return new Date().toISOString().split('T')[0];
+  }
+
+  function getVoucherUsage(code) {
+      let usageData = JSON.parse(localStorage.getItem('shopeefood_voucher_usage')) || {};
+      let today = getTodayDateStr();
+      if (usageData[code] && usageData[code].date === today) return usageData[code].count;
+      return 0;
+  }
+
+  function incrementVoucherUsage(code) {
+      let usageData = JSON.parse(localStorage.getItem('shopeefood_voucher_usage')) || {};
+      let today = getTodayDateStr();
+      if (usageData[code] && usageData[code].date === today) {
+          usageData[code].count += 1;
+      } else {
+          usageData[code] = { date: today, count: 1 };
+      }
+      localStorage.setItem('shopeefood_voucher_usage', JSON.stringify(usageData));
+  }
+
+  function formatRp(angka) {
+      return "Rp " + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function checkStoreStatus(jamString) {
+      if (!jamString) return true; // Default buka
+      try {
+          let parts = jamString.split('-');
+          if(parts.length !== 2) return true;
+          let openTime = parts[0].trim().split(':');
+          let closeTime = parts[1].trim().split(':');
+
+          let now = new Date();
+          let currentMinutes = now.getHours() * 60 + now.getMinutes();
+          let openMinutes = parseInt(openTime[0], 10) * 60 + parseInt(openTime[1], 10);
+          let closeMinutes = parseInt(closeTime[0], 10) * 60 + parseInt(closeTime[1], 10);
+
+          if (openMinutes < closeMinutes) {
+              return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+          } else {
+              return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+          }
+      } catch(e) {
+          return true;
+      }
+  }
+
+  function kunjungiTokoPencarian(btn) {
+      var container = btn.closest('.flex.items-center');
+      if (container) {
+          var tokoEl = container.querySelector('.sc-toko');
+          if (tokoEl) {
+              var tokoName = tokoEl.innerText;
+              if (tokoName && tokoName !== 'Mitra Toko') {
+                  window.location.href = '/search?q=' + encodeURIComponent('"' + tokoName + '"') + '&toko=1';
+              }
+          }
+      }
+  }
+
+
+  // ==========================================
+  // 2. INISIALISASI DOM (PWA, Parsing DOM)
+  // ==========================================
+  document.addEventListener("DOMContentLoaded", function() {
+
+      // --- A. Generate Web App Manifest ---
+      var manifest = {
+          "name": document.title,
+          "short_name": "Anturun",
+          "start_url": "/",
+          "display": "standalone",
+          "background_color": "#F5F5F5",
+          "theme_color": "#EE4D2D",
+          "description": "Aplikasi Pemesanan Makanan Online",
+          "icons": [
+              { "src": "https://cdn-icons-png.flaticon.com/512/3143/3143644.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+              { "src": "https://cdn-icons-png.flaticon.com/512/3143/3143644.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+          ]
+      };
+      var stringManifest = JSON.stringify(manifest);
+      var blob = new Blob([stringManifest], {type: 'application/manifest+json'});
+      var manifestURL = URL.createObjectURL(blob);
+      var link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+
+      // --- B. Setup Logic PWA Swipe to Close Bottom Sheet ---
+      function attachSwipe(modalId, scrollAreaId, closeFunc) {
+          var modal = document.getElementById(modalId);
+          var scrollArea = document.getElementById(scrollAreaId);
+          if (!modal || !scrollArea) return;
+
+          var startY = 0, currentY = 0, isDragging = false;
+
+          modal.addEventListener('touchstart', function(e) {
+              if (scrollArea.scrollTop > 0) return;
+              if (e.target.closest('#mapContainer')) return;
+              
+              // Abaikan logika swipe jika menyentuh form
+              const tag = e.target.tagName.toLowerCase();
+              if (tag === 'input' || tag === 'textarea' || tag === 'button') return;
+              
+              startY = e.touches[0].clientY;
+              currentY = startY; 
+              isDragging = true;
+              modal.style.transition = 'none';
+          }, {passive: true});
+
+          modal.addEventListener('touchmove', function(e) {
+              if (!isDragging) return;
+              currentY = e.touches[0].clientY;
+              var deltaY = currentY - startY;
+
+              if (deltaY > 0) {
+                  if (e.cancelable) e.preventDefault();
+                  modal.style.transform = 'translateY(' + deltaY + 'px)';
+              }
+          }, {passive: false});
+
+          modal.addEventListener('touchend', function(e) {
+              if (!isDragging) return;
+              isDragging = false;
+              var deltaY = currentY - startY;
+              modal.style.transition = 'transform 0.3s ease-out';
+              
+              if (deltaY > 100) {
+                  modal.style.transform = ''; 
+                  closeFunc();
+              } else {
+                  modal.style.transform = '';
+              }
+          });
+      }
+      attachSwipe('cartModal', 'cartScrollArea', window.toggleCartModal);
+      attachSwipe('profileModal', 'profileScrollArea', window.toggleProfileModal);
+
+      // --- C. Banner Profil Toko (Pencarian Toko) ---
+      setTimeout(function() {
+          var urlParams = new URLSearchParams(window.location.search);
+          var query = urlParams.get('q');
+          var isTokoVisit = urlParams.get('toko') === '1';
+          
+          if (query && isTokoVisit && document.getElementById('storeHeaderPlaceholder')) {
+              var storeElements = document.querySelectorAll('.sc-toko');
+              if (storeElements.length > 0) {
+                  var firstStore = storeElements[0].innerText;
+                  var isSameStore = true;
+                  
+                  for (var i = 1; i < storeElements.length; i++) {
+                      if (storeElements[i].innerText !== firstStore) {
+                          isSameStore = false; break;
+                      }
+                  }
+                  
+                  if (isSameStore && firstStore !== 'Mitra Toko') {
+                      var firstContainer = storeElements[0].closest('.post-container-parse');
+                      var jamEl = firstContainer.querySelector('.sc-jam');
+                      var jamText = jamEl ? jamEl.innerText.replace('🕒 Jam Operasional: ', '') : '';
+                      
+                      var header = document.getElementById('storeHeaderPlaceholder');
+                      document.getElementById('shTokoName').innerText = firstStore;
+                      
+                      if (jamText) {
+                         document.getElementById('shTokoJam').innerText = "🕒 " + jamText;
+                         var btn = firstContainer.querySelector('.btn-add-cart');
+                         var isTutup = btn && btn.innerText.includes('TUTUP');
+                         var statusEl = document.getElementById('shTokoStatus');
+                         
+                         statusEl.classList.remove('hidden');
+                         if (isTutup) {
+                             statusEl.innerText = 'TUTUP';
+                             statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-sm inline-block bg-red-100 text-red-600 border border-red-200';
+                         } else {
+                             statusEl.innerText = 'BUKA';
+                             statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-sm inline-block bg-green-100 text-green-600 border border-green-200';
+                         }
+                      }
+                      header.classList.remove('hidden');
+                      header.classList.add('flex');
+                      
+                      var recTitle = document.getElementById('titleRekomendasi');
+                      if (recTitle) {
+                          recTitle.innerHTML = "<svg class='w-4 h-4 mr-1 text-shopee' fill='currentColor' viewBox='0 0 20 20'><path fill-rule='evenodd' d='M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z' clip-rule='evenodd'/></svg> Daftar Menu Toko";
+                      }
+
+                      var pageLinks = document.querySelectorAll('.py-6.gap-4 a');
+                      pageLinks.forEach(function(a) {
+                          var href = a.getAttribute('href');
+                          if (href && !href.includes('toko=1')) {
+                              a.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'toko=1');
+                          }
+                      });
+                  }
+              }
+          }
+      }, 600);
+
+      // --- D. Eksekusi Shortcode (Merubah Tampilan Harga dll) ---
+      initBuyerInfo();
+
+      const containers = document.querySelectorAll('.post-container-parse');
+      containers.forEach(container => {
+          const rawBodyEl = container.querySelector('.post-body-raw');
+          if (!rawBodyEl) return;
+          
+          let htmlContent = rawBodyEl.innerHTML;
+          const extractValue = (regex) => {
+              const match = htmlContent.match(regex);
+              if (match) {
+                  htmlContent = htmlContent.replace(match[0], '');
+                  return match[1].replace(/(<([^>]+)>)/gi, "").trim();
+              }
+              return null;
+          };
+
+          const valHarga = extractValue(/\[harga\]([\s\S]*?)\[\/harga\]/i);
+          const valHargaCoret = extractValue(/\[hargacoret\]([\s\S]*?)\[\/hargacoret\]/i);
+          const valToko = extractValue(/\[toko\]([\s\S]*?)\[\/toko\]/i);
+          const valRingkasan = extractValue(/\[ringkasan\]([\s\S]*?)\[\/ringkasan\]/i);
+          const valKordinatToko = extractValue(/\[kordinattoko\]([\s\S]*?)\[\/kordinattoko\]/i);
+          const valJam = extractValue(/\[jam\]([\s\S]*?)\[\/jam\]/i);
+          const valGambar = extractValue(/\[gambar\]([\s\S]*?)\[\/gambar\]/i);
+          
+          const elHarga = container.querySelector('.sc-harga');
+          const elHargaCoret = container.querySelector('.sc-hargacoret');
+          const elHargaCoretContainer = container.querySelector('.sc-hargacoret-container');
+          const elToko = container.querySelector('.sc-toko');
+          const elRingkasan = container.querySelector('.sc-ringkasan');
+          const elJam = container.querySelector('.sc-jam');
+          const overlayTutup = container.querySelector('.sc-overlay-tutup');
+          const btnAdd = container.querySelector('.btn-add-cart');
+          const btnBeli = container.querySelector('.btn-beli-sekarang');
+          
+          if (elHarga && valHarga) elHarga.innerText = valHarga;
+          if (elToko && valToko) elToko.innerText = valToko;
+          if (elRingkasan && valRingkasan) elRingkasan.innerText = valRingkasan;
+          if (valKordinatToko) container.setAttribute('data-kordinattoko', valKordinatToko);
+
+          if (valGambar) {
+              container.setAttribute('data-image', valGambar); // Update gambar untuk keranjang
+              const imgEl = container.querySelector('img');
+              if (imgEl) {
+                  imgEl.src = valGambar; // Timpa gambar bawaan Blogger
+              } else {
+                  const noImgEl = container.querySelector('.text-gray-400.text-xs');
+                  if (noImgEl) {
+                      noImgEl.outerHTML = `<img class="absolute inset-0 w-full h-full object-cover" alt="Gambar Produk" src="${valGambar}">`;
+                  } else {
+                      // PENYELESAIAN BUG: Menambahkan gambar paksa di halaman detail jika kosong
+                      const detailImgWrapper = container.querySelector('.bg-gray-100.flex.justify-center');
+                      if (detailImgWrapper) {
+                          detailImgWrapper.insertAdjacentHTML('afterbegin', `<img class="w-full max-w-md h-auto aspect-square object-cover" alt="Gambar Produk" src="${valGambar}">`);
+                      }
+                  }
+              }
+          }
+
+          let isTutup = false;
+          if (valJam) {
+              if (elJam) elJam.innerText = "🕒 Jam Operasional: " + valJam;
+              isTutup = !checkStoreStatus(valJam);
+          }
+
+          if (isTutup) {
+              if (overlayTutup) {
+                  overlayTutup.classList.remove('hidden');
+                  overlayTutup.classList.add('flex');
+              }
+              if (btnAdd) {
+                  btnAdd.classList.remove('btn-add-cart', 'bg-orange-50', 'text-shopee', 'hover:bg-shopee', 'hover:text-white', 'hover:bg-orange-100', 'cursor-pointer');
+                  btnAdd.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+                  btnAdd.innerHTML = '<span class="text-xs font-bold w-full text-center">TUTUP</span>';
+                  btnAdd.style.pointerEvents = 'none';
+              }
+              if (btnBeli) {
+                  btnBeli.classList.remove('bg-shopee', 'hover:bg-shopeehover', 'cursor-pointer');
+                  btnBeli.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                  btnBeli.removeAttribute('onclick');
+                  btnBeli.innerHTML = '<span class="text-xs md:text-sm font-bold">Toko Tutup</span>';
+                  btnBeli.style.pointerEvents = 'none';
+              }
+          }
+
+          if (elHargaCoret && valHargaCoret) {
+              elHargaCoret.innerText = valHargaCoret;
+              if (elHargaCoretContainer) {
+                  elHargaCoretContainer.classList.remove('hidden');
+                  elHargaCoretContainer.classList.add('flex');
+              }
+          }
+          rawBodyEl.remove();
+      });
+
+      updateCartBadge();
+
+      // --- E. Inisialisasi Deteksi Tombol Add Cart ---
+      document.body.addEventListener('click', function(e) {
+          const btn = e.target.closest('.btn-add-cart');
+          if (!btn) return;
+          
+          const container = btn.closest('.post-container-parse');
+          if (!container) return;
+
+          const title = container.getAttribute('data-title');
+          const img = container.getAttribute('data-image');
+          const kordinatTokoAttr = container.getAttribute('data-kordinattoko');
+          
+          const tokoEl = container.querySelector('.sc-toko');
+          const hargaEl = container.querySelector('.sc-harga');
+          const hargaCoretEl = container.querySelector('.sc-hargacoret');
+          
+          if(!tokoEl || !hargaEl) return;
+
+          const toko = tokoEl.innerText;
+          const hargaRaw = hargaEl.innerText.replace(/[^0-9]/g, '');
+          const harga = parseInt(hargaRaw) || 0;
+          
+          let originalPrice = harga;
+          if (hargaCoretEl) {
+             const hcRaw = hargaCoretEl.innerText.replace(/[^0-9]/g, '');
+             if (hcRaw) originalPrice = parseInt(hcRaw) || harga;
+          }
+          if (originalPrice < harga) originalPrice = harga; 
+
+          let storeLat = -6.200000;
+          let storeLng = 106.816666;
+          if (kordinatTokoAttr) {
+              const parts = kordinatTokoAttr.split(',');
+              if(parts.length === 2) {
+                  storeLat = parseFloat(parts[0].trim());
+                  storeLng = parseFloat(parts[1].trim());
+              }
+          }
+
+          tambahItem(title, harga, toko, img, originalPrice, storeLat, storeLng);
+          
+          const originalText = btn.innerHTML;
+          btn.innerHTML = `<span class="text-xs font-bold w-full text-center">✔ Ditambahkan</span>`;
+          btn.classList.add('bg-green-100', 'text-green-700', 'border-green-200');
+          setTimeout(() => {
+              btn.innerHTML = originalText;
+              btn.classList.remove('bg-green-100', 'text-green-700', 'border-green-200');
+          }, 1500);
+      });
+
+      // --- F. Deteksi Pembukaan Modal Untuk Merapihkan Multi-Profile UI ---
+      const profileObserver = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+              if (mutation.target.classList.contains('flex')) {
+                  window.switchProfile(activeProfileIdx);
+                  window.updateCartProfileDisplay();
+              }
+          });
+      });
+
+      const profileModalWrapper = document.getElementById('profileModalWrapper');
+      if (profileModalWrapper) {
+          profileObserver.observe(profileModalWrapper, { attributes: true, attributeFilter: ['class'] });
+      }
+
+      // Inisialisasi awal multi-profile UI
+      window.renderProfileTabs();
+      setTimeout(() => {
+          window.updateCartProfileDisplay();
+      }, 1000);
+  });
+
+  // ==========================================
+  // 3. LOGIKA MULTI-PROFILE & DATA PEMBELI
+  // ==========================================
+  window.renderProfileTabs = function() {
+      for(let i=0; i<3; i++) {
+          let btn = document.getElementById('tab-profile-' + i);
+          if(btn) {
+              btn.innerText = multiProfiles[i].label || ('Alamat ' + (i+1));
+              if(i === activeProfileIdx) {
+                  // Tailwind color bg-shopee = bg-anturun (#EE4D2D)
+                  btn.className = "flex-1 py-2 px-1 truncate text-xs font-bold rounded-sm border border-[#EE4D2D] bg-[#EE4D2D] text-white shadow-sm transition outline-none";
+              } else {
+                  btn.className = "flex-1 py-2 px-1 truncate text-xs font-bold rounded-sm border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition outline-none";
+              }
+          }
+      }
+  }
+
+  window.switchProfile = function(idx) {
+      let dJarakText = document.getElementById('displayJarak') ? document.getElementById('displayJarak').innerText : "0";
+      let jarakNum = parseFloat(dJarakText) || multiProfiles[activeProfileIdx].jarak || 0;
+      
+      multiProfiles[activeProfileIdx] = {
+          label: document.getElementById('profLabel').value || ('Alamat ' + (activeProfileIdx + 1)),
+          nama: document.getElementById('profNama').value,
+          nomor: document.getElementById('profNomor').value,
+          alamat: document.getElementById('profAlamat').value,
+          kordinat: document.getElementById('profKordinat').value,
+          jarak: jarakNum
+      };
+
+      activeProfileIdx = idx;
+      localStorage.setItem('anturun_active_profile_idx', activeProfileIdx);
+      window.renderProfileTabs();
+
+      let p = multiProfiles[idx];
+      document.getElementById('profLabel').value = p.label || ('Alamat ' + (idx + 1));
+      document.getElementById('profNama').value = p.nama || '';
+      document.getElementById('profNomor').value = p.nomor || '';
+      document.getElementById('profAlamat').value = p.alamat || '';
+      document.getElementById('profKordinat').value = p.kordinat || '';
+      
+      if(p.jarak) {
+          document.getElementById('displayJarak').innerText = p.jarak + " km";
+      } else {
+          document.getElementById('displayJarak').innerText = "Belum dihitung";
+      }
+
+      if(typeof initLeafletMap === 'function') {
+          initLeafletMap();
+      }
+  }
+
+  window.saveMultiProfile = function(btnEvent) {
+      let dJarakText = document.getElementById('displayJarak').innerText;
+      let jarakNum = parseFloat(dJarakText) || multiProfiles[activeProfileIdx].jarak || 0;
+
+      multiProfiles[activeProfileIdx] = {
+          label: document.getElementById('profLabel').value || ('Alamat ' + (activeProfileIdx + 1)),
+          nama: document.getElementById('profNama').value,
+          nomor: document.getElementById('profNomor').value,
+          alamat: document.getElementById('profAlamat').value,
+          kordinat: document.getElementById('profKordinat').value,
+          jarak: jarakNum
+      };
+
+      localStorage.setItem('anturun_multi_profiles', JSON.stringify(multiProfiles));
+      localStorage.setItem('anturun_active_profile_idx', activeProfileIdx);
+
+      let activeP = multiProfiles[activeProfileIdx];
+      localStorage.setItem('shopeefood_buyer', JSON.stringify(activeP));
+      
+      buyerInfo.nama = activeP.nama;
+      buyerInfo.nomor = activeP.nomor;
+      buyerInfo.alamat = activeP.alamat;
+      buyerInfo.kordinat = activeP.kordinat;
+      buyerInfo.jarak = activeP.jarak;
+
+      window.renderProfileTabs(); 
+      window.updateCartProfileDisplay();
+
+      const btn = btnEvent.target || btnEvent;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "✔ Berhasil Disimpan";
+      btn.classList.add('bg-green-600');
+      
+      setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('bg-green-600');
+          if(typeof window.toggleProfileModal === 'function') window.toggleProfileModal();
+      }, 1000);
+  }
+
+  window.updateCartProfileDisplay = function() {
+      let activeP = multiProfiles[activeProfileIdx];
+      let defaultLabel = activeP.label || ('Alamat ' + (activeProfileIdx + 1));
+      
+      const displayCart = document.getElementById('displayAlamatCart');
+      if (displayCart) {
+          if (activeP.nama && activeP.alamat && activeP.nomor) {
+              displayCart.innerHTML = `<div class="font-bold text-gray-800 text-[13px]">${activeP.nama} <span class="font-normal text-gray-500 ml-1">${activeP.nomor}</span> <span class="bg-orange-100 text-[#EE4D2D] text-[9px] px-1.5 py-0.5 rounded ml-1 border border-orange-200">${defaultLabel}</span></div><div class="text-xs text-gray-600 mt-1 line-clamp-2">${activeP.alamat}</div>`;
+          } else {
+              displayCart.innerHTML = `<span class="text-[#EE4D2D]">Klik di sini untuk mengisi alamat pengiriman &amp; data penerima.</span>`;
+          }
+      }
+  }
+
+  function initBuyerInfo() {
+      buyerInfo = JSON.parse(localStorage.getItem('shopeefood_buyer')) || {
+          nama: '', nomor: '', alamat: '', kordinat: '', jarak: 0, lastStoreConfig: ''
+      };
+      window.updateCartProfileDisplay();
+  }
+
+  function bukaProfilDariCart() {
+      window.toggleCartModal(); 
+      setTimeout(() => {
+          window.toggleProfileModal();
+      }, 350);
+  }
+
+
+  // ==========================================
+  // 4. LOGIKA PETA & JARAK
+  // ==========================================
+  function getUniqueStoreCoords() {
+      let stores = [];
+      let storeNames = [];
+      cart.forEach(item => {
+          if (!storeNames.includes(item.store) && item.storeLat && item.storeLng) {
+              storeNames.push(item.store);
+              stores.push({ lat: item.storeLat, lng: item.storeLng, name: item.store });
+          }
+      });
+      if (stores.length === 0) {
+          stores.push({ lat: -6.200000, lng: 106.816666, name: "Default Toko" }); 
+      }
+      return stores;
+  }
+
+  function hitungJarakBackground() {
+      if (cart.length === 0) return;
+
+      const stores = getUniqueStoreCoords();
+      const currentStoreConfig = JSON.stringify(stores);
+      let buyerLat = null, buyerLng = null;
+      
+      if (buyerInfo.kordinat) {
+          const match = buyerInfo.kordinat.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+          if (match) {
+              buyerLat = parseFloat(match[1]);
+              buyerLng = parseFloat(match[2]);
+          }
+      }
+
+      if (buyerLat !== null && buyerLng !== null) {
+          if (buyerInfo.lastStoreConfig === currentStoreConfig && buyerInfo.jarak > 0) {
+              return; 
+          }
+
+          const router = L.Routing.osrmv1();
+          let waypoints = stores.map(store => L.Routing.waypoint(L.latLng(store.lat, store.lng)));
+          waypoints.push(L.Routing.waypoint(L.latLng(buyerLat, buyerLng)));
+
+          router.route(waypoints, function(err, routes) {
+              if (!err && routes && routes.length > 0) {
+                  const distKm = (routes[0].summary.totalDistance / 1000).toFixed(2);
+                  buyerInfo.jarak = distKm;
+                  buyerInfo.lastStoreConfig = currentStoreConfig;
+                  localStorage.setItem('shopeefood_buyer', JSON.stringify(buyerInfo));
+                  
+                  let w = document.getElementById('cartModalWrapper');
+                  if(w && !w.classList.contains('hidden')){
+                      renderCartUI();
+                  }
+              }
+          });
+      }
+  }
+
+  function initLeafletMap() {
+      const stores = getUniqueStoreCoords();
+      let lat = stores[0].lat + 0.01;
+      let lng = stores[0].lng + 0.01;
+
+      let kordinatEl = document.getElementById('profKordinat');
+      const savedLink = kordinatEl ? kordinatEl.value : null;
+      if (savedLink) {
+          const match = savedLink.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+          if (match) {
+              lat = parseFloat(match[1]);
+              lng = parseFloat(match[2]);
+          }
+      }
+
+      let mapContainer = document.getElementById('mapContainer');
+      if (!mapContainer) return;
+
+      if (!mapInitialized) {
+          map = L.map('mapContainer').setView([lat, lng], 13);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '&copy; OpenStreetMap'
+          }).addTo(map);
+
+          let waypoints = stores.map(store => L.latLng(store.lat, store.lng));
+          waypoints.push(L.latLng(lat, lng));
+
+          routingControl = L.Routing.control({
+              waypoints: waypoints,
+              routeWhileDragging: false,
+              show: false,
+              createMarker: function(i, wp, nWps) {
+                  if (i < nWps - 1) {
+                      return L.marker(wp.latLng, {draggable: false, title: "Toko"}).bindPopup(`<b>🏪 ${stores[i] ? stores[i].name : 'Titik Toko'}</b>`);
+                  } else {
+                      return L.marker(wp.latLng, {draggable: true, title: "Tujuan"}).bindPopup("<b>📍 Lokasi Anda</b>").openPopup();
+                  }
+              }
+          }).addTo(map);
+
+          routingControl.on('routesfound', function(e) {
+              const routes = e.routes;
+              const distKm = (routes[0].summary.totalDistance / 1000).toFixed(2);
+              let dj = document.getElementById('displayJarak');
+              if(dj) dj.innerText = distKm + " km";
+              
+              buyerInfo.jarak = distKm;
+              buyerInfo.lastStoreConfig = JSON.stringify(stores);
+              localStorage.setItem('shopeefood_buyer', JSON.stringify(buyerInfo));
+              
+              const wpsLength = routes[0].waypoints.length;
+              const newBuyerLatLng = routes[0].waypoints[wpsLength - 1].latLng;
+              updateCoordinateInput(newBuyerLatLng.lat, newBuyerLatLng.lng);
+          });
+
+          map.on('click', function(e) {
+              const currentWaypoints = routingControl.getWaypoints();
+              routingControl.spliceWaypoints(currentWaypoints.length - 1, 1, e.latlng);
+          });
+
+          mapInitialized = true;
+      } else {
+          map.invalidateSize();
+          if (routingControl) {
+              let waypoints = stores.map(store => L.latLng(store.lat, store.lng));
+              waypoints.push(L.latLng(lat, lng));
+              routingControl.setWaypoints(waypoints);
+          }
+          map.setView([lat, lng], 13);
+      }
+  }
+
+  function updateCoordinateInput(lat, lng) {
+      let p = document.getElementById('profKordinat');
+      if(p) p.value = `https://maps.google.com/?q=${lat},${lng}`;
+  }
+
+  window.getLocation = function() {
+      const btn = document.getElementById('btnGetLocation');
+      if(!btn) return;
+      btn.innerText = "⏳ Melacak...";
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                  const lat = pos.coords.latitude;
+                  const lng = pos.coords.longitude;
+                  updateCoordinateInput(lat, lng);
+                  
+                  if(mapInitialized && routingControl) {
+                      const currentWaypoints = routingControl.getWaypoints();
+                      routingControl.spliceWaypoints(currentWaypoints.length - 1, 1, L.latLng(lat, lng));
+                      map.setView([lat, lng], 14);
+                  }
+                  btn.innerText = "✅ Lokasi Ditemukan";
+                  setTimeout(()=> btn.innerText="📍 Lacak Lokasi Saya", 3000);
+              },
+              (err) => {
+                  alert("Akses GPS ditolak atau gagal. Mohon izinkan browser atau geser pin peta secara manual.");
+                  btn.innerText = "📍 Lacak Lokasi Saya";
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+      } else {
+          alert("Browser Anda tidak mendukung deteksi lokasi.");
+          btn.innerText = "📍 Lacak Lokasi Saya";
+      }
+  }
+
+
+  // ==========================================
+  // 5. KERANJANG BELANJA & MODAL
+  // ==========================================
+  window.toggleProfileModal = function() {
+      const wrapper = document.getElementById('profileModalWrapper');
+      const modal = document.getElementById('profileModal');
+      if(!wrapper || !modal) return;
+      
+      if (wrapper.classList.contains('hidden')) {
+          initBuyerInfo();
+          wrapper.classList.remove('hidden');
+          wrapper.classList.add('flex');
+          setTimeout(() => {
+              modal.classList.remove('translate-y-full');
+              setTimeout(() => { initLeafletMap(); }, 300);
+          }, 10);
+          document.body.style.overflow = 'hidden';
+      } else {
+          modal.classList.add('translate-y-full');
+          setTimeout(() => {
+              wrapper.classList.add('hidden');
+              wrapper.classList.remove('flex');
+              document.body.style.overflow = '';
+          }, 300);
+      }
+  }
+
+  window.toggleCartModal = function() {
+      const wrapper = document.getElementById('cartModalWrapper');
+      const modal = document.getElementById('cartModal');
+      if(!wrapper || !modal) return;
+
+      if (wrapper.classList.contains('hidden')) {
+          initBuyerInfo(); 
+          renderCartUI();
+          wrapper.classList.remove('hidden');
+          wrapper.classList.add('flex');
+          setTimeout(() => modal.classList.remove('translate-y-full'), 10);
+          document.body.style.overflow = 'hidden';
+      } else {
+          modal.classList.add('translate-y-full');
+          setTimeout(() => {
+              wrapper.classList.add('hidden');
+              wrapper.classList.remove('flex');
+              document.body.style.overflow = '';
+          }, 300);
+      }
+  }
+
+  function tambahItem(title, price, store, img, originalPrice, storeLat, storeLng) {
+      let existingItem = cart.find(item => item.title === title && item.store === store);
+      if (existingItem) {
+          existingItem.qty += 1;
+      } else {
+          cart.push({ title, price, store, img, originalPrice, storeLat, storeLng, qty: 1 });
+      }
+      saveCart();
+      hitungJarakBackground();
+  }
+
+  window.ubahQty = function(index, delta) {
+      if(cart[index]) {
+          cart[index].qty += delta;
+          if(cart[index].qty <= 0) cart.splice(index, 1);
+          saveCart();
+          hitungJarakBackground();
+          renderCartUI();
+      }
+  }
+
+  function saveCart() {
+      localStorage.setItem('shopeefood_cart', JSON.stringify(cart));
+      updateCartBadge();
+  }
+
+  function updateCartBadge() {
+      const badges = document.querySelectorAll('.cart-badge');
+      const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+      badges.forEach(b => {
+          b.innerText = totalItems;
+          b.style.display = totalItems > 0 ? 'block' : 'none';
+      });
+  }
+
+  window.terapkanVoucher = function() {
+      const inputEl = document.getElementById('inputVoucher');
+      if(!inputEl) return;
+      
+      const input = inputEl.value.trim().toUpperCase();
+      const msgEl = document.getElementById('msgVoucher');
+      
+      if (!input) {
+          appliedVoucher = null;
+          renderCartUI();
+          msgEl.innerText = "Voucher dibatalkan.";
+          msgEl.className = "text-[11px] mt-1.5 text-gray-500 block";
+          return;
+      }
+
+      if (VOUCHERS[input]) {
+          const maxUses = VOUCHERS[input].maxUsesPerDay || 0;
+          const currentUsage = getVoucherUsage(input);
+
+          if (maxUses > 0 && currentUsage >= maxUses) {
+              appliedVoucher = null;
+              renderCartUI();
+              msgEl.innerText = "Batas penggunaan voucher hari ini telah habis.";
+              msgEl.className = "text-[11px] mt-1.5 text-[#EE4D2D] font-medium block";
+              return;
+          }
+
+          appliedVoucher = { code: input, ...VOUCHERS[input] };
+          renderCartUI(); 
+          
+          if(appliedVoucher) { 
+             msgEl.innerText = `Voucher berhasil diterapkan! (Dipakai: ${currentUsage}/${maxUses})`;
+             msgEl.className = "text-[11px] mt-1.5 text-green-600 font-medium block";
+          }
+      } else {
+          appliedVoucher = null;
+          renderCartUI();
+          msgEl.innerText = "Voucher tidak valid atau tidak ditemukan.";
+          msgEl.className = "text-[11px] mt-1.5 text-[#EE4D2D] font-medium block";
+      }
+  }
+
+  function renderCartUI() {
+      const container = document.getElementById('cartItemsContainer');
+      if(!container) return;
+
+      let subtotalOriginal = 0;
+      let totalDiskon = 0;
+      
+      if (cart.length === 0) {
+          container.innerHTML = `<div class="bg-white p-6 text-center text-gray-400 text-sm">Keranjang kosong.<br>Pilih produk terlebih dahulu.</div>`;
+          document.getElementById('txtSubtotal').innerText = "Rp 0";
+          document.getElementById('txtOngkir').innerText = "Rp 0";
+          document.getElementById('cartJarakText').innerText = "";
+          document.getElementById('txtLayanan').innerText = "Rp 0";
+          document.getElementById('txtTotal').innerText = "Rp 0";
+          document.getElementById('txtTotalBottom').innerText = "Rp 0";
+          document.getElementById('txtDiskon').innerText = "-Rp 0";
+          document.getElementById('rowMultiToko').classList.add('hidden');
+          document.getElementById('rowVoucher').classList.add('hidden');
+          document.getElementById('msgVoucher').classList.add('hidden');
+          document.getElementById('inputVoucher').value = '';
+          appliedVoucher = null;
+          return;
+      }
+
+      const grouped = {};
+      cart.forEach((item, i) => {
+          if (!grouped[item.store]) grouped[item.store] = [];
+          grouped[item.store].push({ ...item, originalIndex: i });
+          
+          const origPrice = item.originalPrice || item.price;
+          subtotalOriginal += (origPrice * item.qty);
+          if (origPrice > item.price) {
+              totalDiskon += (origPrice - item.price) * item.qty;
+          }
+      });
+
+      let html = '';
+      for (const store in grouped) {
+          html += `
+          <div class="bg-white border-b border-gray-100 last:border-0 shadow-sm">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+               <span class="text-sm">🏪</span>
+               <span class="font-bold text-gray-800 text-[13px]">${store}</span>
+               <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+            </div>
+            <div class="p-4 space-y-4">
+          `;
+          
+          grouped[store].forEach(item => {
+              let imgHTML = item.img ? `<img src="${item.img}" class="w-16 h-16 object-cover rounded-sm border border-gray-100">` : `<div class="w-16 h-16 bg-gray-50 rounded-sm border border-gray-100 flex items-center justify-center text-[10px] text-gray-400">No Img</div>`;
+              let originalPriceDisplay = (item.originalPrice && item.originalPrice > item.price) ? `<span class="text-[10px] text-gray-400 line-through mr-1">${formatRp(item.originalPrice)}</span>` : '';
+              
+              html += `
+              <div class="flex gap-3">
+                 ${imgHTML}
+                 <div class="flex-grow flex flex-col justify-between">
+                    <div class="text-[13px] text-gray-800 line-clamp-2 leading-tight">${item.title}</div>
+                    <div class="flex items-center justify-between mt-2">
+                       <div class="flex flex-col">
+                           ${originalPriceDisplay}
+                           <span class="text-[#EE4D2D] font-medium text-sm leading-none">${formatRp(item.price)}</span>
+                       </div>
+                       <div class="flex items-center border border-gray-300 rounded-sm">
+                          <button onclick="ubahQty(${item.originalIndex}, -1)" class="px-2.5 py-0.5 text-gray-500 hover:bg-gray-100 font-medium">-</button>
+                          <span class="px-2 text-[13px] text-gray-800 border-x border-gray-300">${item.qty}</span>
+                          <button onclick="ubahQty(${item.originalIndex}, 1)" class="px-2.5 py-0.5 text-gray-500 hover:bg-gray-100 font-medium">+</button>
+                       </div>
+                    </div>
+                 </div>
+              </div>`;
+          });
+          html += `</div></div>`;
+      }
+
+      container.innerHTML = html;
+      
+      const currentStoreConfig = JSON.stringify(getUniqueStoreCoords());
+      if (buyerInfo.lastStoreConfig !== currentStoreConfig) {
+          buyerInfo.jarak = 0; 
+          hitungJarakBackground(); 
+      }
+
+      let numStores = Object.keys(grouped).length;
+      let biayaMultiToko = numStores > 1 ? (numStores - 1) * BIAYA_MULTI_TOKO_PER_EXTRA : 0;
+      
+      let kalkulasiOngkir = BASE_ONGKIR; 
+      let textJarak = "";
+      
+      if (buyerInfo.jarak && parseFloat(buyerInfo.jarak) > 0) {
+          let jNum = parseFloat(buyerInfo.jarak);
+          textJarak = `(${jNum} km)`;
+          if (jNum > 3) {
+              kalkulasiOngkir += Math.ceil(jNum - 3) * ONGKIR_PER_KM;
+          }
+      } else {
+          if (cart.length > 0) {
+              if (buyerInfo.kordinat) textJarak = `(Menghitung...)`;
+              else textJarak = `(Buka Profil u/ Cek Jarak)`;
+          }
+      }
+
+      let diskonVoucher = 0;
+      if (appliedVoucher) {
+          if (subtotalOriginal >= appliedVoucher.minPurchase) {
+              if (appliedVoucher.type === 'nominal') {
+                  diskonVoucher = appliedVoucher.value;
+              } else if (appliedVoucher.type === 'percent') {
+                  diskonVoucher = (subtotalOriginal * appliedVoucher.value) / 100;
+                  if (appliedVoucher.maxDiscount && diskonVoucher > appliedVoucher.maxDiscount) {
+                      diskonVoucher = appliedVoucher.maxDiscount;
+                  }
+              }
+              if (diskonVoucher > subtotalOriginal) diskonVoucher = subtotalOriginal;
+              
+              document.getElementById('rowVoucher').classList.remove('hidden');
+              document.getElementById('txtVoucherName').innerText = appliedVoucher.code;
+              document.getElementById('txtVoucherDiscount').innerText = "-" + formatRp(diskonVoucher);
+          } else {
+              const msgEl = document.getElementById('msgVoucher');
+              msgEl.innerText = `Minimal belanja ${formatRp(appliedVoucher.minPurchase)} untuk memakai voucher ini.`;
+              msgEl.className = "text-[11px] mt-1.5 text-[#EE4D2D] font-medium block";
+              appliedVoucher = null; 
+              document.getElementById('rowVoucher').classList.add('hidden');
+          }
+      } else {
+          document.getElementById('rowVoucher').classList.add('hidden');
+      }
+
+      const total = subtotalOriginal - totalDiskon + kalkulasiOngkir + BIAYA_LAYANAN + biayaMultiToko - diskonVoucher;
+      
+      document.getElementById('txtSubtotal').innerText = formatRp(subtotalOriginal);
+      document.getElementById('cartJarakText').innerText = textJarak;
+      document.getElementById('txtOngkir').innerText = formatRp(kalkulasiOngkir);
+      document.getElementById('txtLayanan').innerText = formatRp(BIAYA_LAYANAN);
+      document.getElementById('txtDiskon').innerText = "-" + formatRp(totalDiskon);
+      
+      if(biayaMultiToko > 0) {
+          document.getElementById('rowMultiToko').classList.remove('hidden');
+          document.getElementById('txtMultiToko').innerText = formatRp(biayaMultiToko);
+      } else {
+          document.getElementById('rowMultiToko').classList.add('hidden');
+      }
+
+      document.getElementById('txtTotal').innerText = formatRp(total);
+      document.getElementById('txtTotalBottom').innerText = formatRp(total);
+  }
+
+
+  // ==========================================
+  // 6. LOGIKA QRIS & CHECKOUT
+  // ==========================================
+  function crc16(str) {
+      let crc = 0xFFFF;
+      for (let c = 0; c < str.length; c++) {
+          crc ^= str.charCodeAt(c) << 8;
+          for (let i = 0; i < 8; i++) {
+              if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
+              else crc = crc << 1;
+          }
+      }
+      let hex = (crc & 0xFFFF).toString(16).toUpperCase();
+      return hex.padStart(4, '0');
+  }
+
+  function bukaModalQRIS(nominalAkhir) {
+      document.getElementById('qrisModalWrapper').classList.remove('hidden');
+      document.getElementById('qrisModalWrapper').classList.add('flex');
+      document.getElementById('qrisTotalText').innerText = formatRp(nominalAkhir);
+
+      window.currentQRISNominal = nominalAkhir; 
+
+      let container = document.getElementById("qris-container");
+      container.innerHTML = ""; 
+
+      if (!STRING_QRIS_STATIS || STRING_QRIS_STATIS.length < 50) {
+          container.innerHTML = '<span class="text-xs text-red-500 text-center font-medium">Error: Anda belum mengatur String QRIS pada script Anda.</span>';
+          return;
+      }
+
+      try {
+          let baseString = STRING_QRIS_STATIS.slice(0, -8);
+          baseString = baseString.replace("010211", "010212");
+          let nominalStr = nominalAkhir.toString();
+          let lengthStr = nominalStr.length < 10 ? "0" + nominalStr.length : nominalStr.length.toString();
+          let tagNominal = "54" + lengthStr + nominalStr;
+          
+          let newPayload = baseString + tagNominal + "6304";
+          let newCrc = crc16(newPayload);
+          let finalQrisString = newPayload + newCrc;
+
+          new QRCode(container, {
+              text: finalQrisString,
+              width: 220,
+              height: 220,
+              colorDark : "#EE4D2D", 
+              colorLight : "#ffffff",
+              correctLevel : QRCode.CorrectLevel.M
+          });
+      } catch (err) {
+          container.innerHTML = '<span class="text-xs text-red-500 text-center">Gagal memproses QRIS. Pastikan string QRIS valid.</span>';
+      }
+  }
+
+  window.downloadQRIS = function() {
+      let container = document.getElementById("qris-container");
+      if (!container) return;
+
+      let canvas = container.querySelector("canvas");
+      let img = container.querySelector("img");
+      let url = "";
+
+      if (img && img.src && img.src.startsWith("data:image")) {
+          url = img.src;
+      } else if (canvas) {
+          url = canvas.toDataURL("image/png");
+      } else {
+          alert("QRIS belum dimuat sepenuhnya. Silakan tunggu sebentar.");
+          return;
+      }
+
+      let nominal = window.currentQRISNominal || "0";
+      let filename = "QRIS_Anturun_Rp" + nominal + ".png";
+
+      fetch(url)
+          .then(res => res.blob())
+          .then(blob => {
+              let blobUrl = window.URL.createObjectURL(blob);
+              let a = document.createElement("a");
+              a.style.display = "none";
+              a.href = blobUrl;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              setTimeout(() => {
+                  document.body.removeChild(a);
+                  window.URL.revokeObjectURL(blobUrl);
+              }, 100);
+          })
+          .catch(err => {
+              console.error("Gagal mendownload QRIS:", err);
+              let a = document.createElement("a");
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+          });
+  }
+
+  window.tutupModalQRIS = function() {
+      document.getElementById('qrisModalWrapper').classList.add('hidden');
+      document.getElementById('qrisModalWrapper').classList.remove('flex');
+  }
+
+  window.lanjutWAPascaQRIS = function() {
+      window.tutupModalQRIS();
+      eksekusiKirimWA(); 
+  }
+
+  window.prosesCheckout = function() {
+      if (cart.length === 0) return alert("Keranjang kosong!");
+
+      const nama = buyerInfo.nama;
+      const nomor = buyerInfo.nomor;
+      const alamat = buyerInfo.alamat;
+      const kordinat = buyerInfo.kordinat || "Tidak disertakan";
+      const jarak = buyerInfo.jarak || "Tidak dihitung";
+      const catatan = document.getElementById('waCatatan').value.trim() || "-";
+      
+      const metodeEl = document.querySelector('input[name="metode"]:checked');
+      const metode = metodeEl ? metodeEl.value : "COD";
+
+      if (!nama || !nomor || !alamat) {
+          bukaProfilDariCart();
+          return alert("Mohon lengkapi Data Penerima terlebih dahulu.");
+      }
+
+      let subtotalOriginal = 0;
+      let totalDiskon = 0;
+      const grouped = {};
+      
+      cart.forEach((item) => {
+          if (!grouped[item.store]) grouped[item.store] = [];
+          grouped[item.store].push(item);
+          const origPrice = item.originalPrice || item.price;
+          subtotalOriginal += origPrice * item.qty;
+          if (origPrice > item.price) {
+              totalDiskon += (origPrice - item.price) * item.qty;
+          }
+      });
+
+      let numStores = Object.keys(grouped).length;
+      let biayaMultiToko = numStores > 1 ? (numStores - 1) * BIAYA_MULTI_TOKO_PER_EXTRA : 0;
+      
+      let finalOngkir = BASE_ONGKIR; 
+
+      let jNum = parseFloat(jarak);
+      if (jNum && jNum > 3) {
+          finalOngkir += Math.ceil(jNum - 3) * ONGKIR_PER_KM; 
+      }
+
+      let diskonVoucher = 0;
+      if (appliedVoucher && subtotalOriginal >= appliedVoucher.minPurchase) {
+          if (appliedVoucher.type === 'nominal') {
+              diskonVoucher = appliedVoucher.value;
+          } else if (appliedVoucher.type === 'percent') {
+              diskonVoucher = (subtotalOriginal * appliedVoucher.value) / 100;
+              if (appliedVoucher.maxDiscount && diskonVoucher > appliedVoucher.maxDiscount) {
+                  diskonVoucher = appliedVoucher.maxDiscount;
+              }
+          }
+          if(diskonVoucher > subtotalOriginal) diskonVoucher = subtotalOriginal;
+      }
+
+      const total = subtotalOriginal - totalDiskon + finalOngkir + BIAYA_LAYANAN + biayaMultiToko - diskonVoucher;
+
+      pendingCheckoutData = {
+          orderNo: "ORD" + Date.now().toString().slice(-6) + Math.floor(Math.random()*10),
+          nama, nomor, alamat, kordinat, jarak, catatan, metode,
+          subtotalOriginal, totalDiskon, finalOngkir, biayaMultiToko, diskonVoucher, total, grouped
+      };
+
+      if (metode === "QRIS") {
+          bukaModalQRIS(total);
+      } else {
+          eksekusiKirimWA();
+      }
+  }
+
+  function eksekusiKirimWA() {
+      if (!pendingCheckoutData) return;
+
+      let d = pendingCheckoutData; 
+
+      let textWA = `*🧾 PESANAN BARU (ANTURUN)*\n`;
+      textWA += `*No. Resi:* ${d.orderNo}\n\n`;
+
+      textWA += `*👤 INFO PENERIMA:*\n`;
+      textWA += `Nama: ${d.nama}\n`;
+      textWA += `No. HP: ${d.nomor}\n`;
+      textWA += `Alamat: ${d.alamat}\n`;
+      textWA += `Kordinat: ${d.kordinat}\n`;
+      textWA += `📍 *Total Jarak Antar:* ${d.jarak} KM\n\n`;
+      
+      textWA += `*🛒 RINCIAN PESANAN:*\n`;
+      
+      for (const store in d.grouped) {
+          textWA += `🏪 *${store}*\n`;
+          d.grouped[store].forEach(item => {
+              textWA += `🔹 ${item.qty}x ${item.title} - ${formatRp(item.price)}\n`;
+          });
+          textWA += `\n`;
+      }
+
+      textWA += `*📝 CATATAN PEMBELI:*\n${d.catatan}\n\n`;
+
+      textWA += `*💳 PEMBAYARAN (${d.metode}):*\n`;
+      textWA += `Subtotal Produk: ${formatRp(d.subtotalOriginal)}\n`;
+      textWA += `Pengiriman (${d.jarak} KM): ${formatRp(d.finalOngkir)}\n`;
+      textWA += `Biaya Layanan: ${formatRp(BIAYA_LAYANAN)}\n`;
+      
+      if(d.biayaMultiToko > 0) textWA += `Biaya Beda Toko: ${formatRp(d.biayaMultiToko)}\n`;
+      if(d.totalDiskon > 0) textWA += `Promo Coret: -${formatRp(d.totalDiskon)}\n`;
+      if(d.diskonVoucher > 0) textWA += `Diskon Voucher [${appliedVoucher.code}]: -${formatRp(d.diskonVoucher)}\n`;
+      
+      textWA += `---------------------------------\n`;
+      textWA += `*TOTAL TAGIHAN: ${formatRp(d.total)}*\n\n`;
+      
+      if (d.metode === "QRIS") {
+          textWA += `_SAYA SUDAH MEMBAYAR VIA QRIS. Berikut saya lampirkan bukti transfernya. Tolong segera diproses!_`;
+      } else {
+          textWA += `_Mohon konfirmasi jika pesanan sudah diterima kurir. Terima kasih!_`;
+      }
+
+      const waLink = `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(textWA)}`;
+      
+      if (d.diskonVoucher > 0 && appliedVoucher) {
+          incrementVoucherUsage(appliedVoucher.code);
+      }
+
+      cart = [];
+      saveCart();
+      renderCartUI();
+      
+      document.getElementById('cartModalWrapper').classList.add('hidden');
+      document.body.style.overflow = '';
+      pendingCheckoutData = null;
+
+      window.open(waLink, '_blank');
+  }
+  //]]>
+  </script>
+
+</body>
+</html>
